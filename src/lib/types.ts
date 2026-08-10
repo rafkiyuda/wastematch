@@ -67,7 +67,10 @@ export interface WasteTransaction {
   listing_id: string;
   buyer_id: string;
   generator_id: string;
-  status: 'disepakati' | 'dijadwalkan' | 'selesai' | 'dibatalkan';
+  status: 'penawaran_diajukan' | 'disepakati' | 'dijadwalkan' | 'selesai' | 'dibatalkan';
+  harga_penawaran_per_kg?: number;
+  jumlah_kg_diminta?: number;
+  catatan_penawaran?: string;
   jadwal_pickup?: string;
   konfirmasi_generator: boolean;
   konfirmasi_buyer: boolean;

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Plus, Store, Scale, MapPin, Calendar, Sparkles, Trash2, Edit3, CheckCircle2, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw } from 'lucide-react';
-import { WasteListing, CATEGORY_LABELS, WasteCategory, MatchRecommendation } from '@/lib/types';
+import { Plus, Store, Scale, MapPin, Calendar, Sparkles, Trash2, Edit3, CheckCircle2, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, DollarSign, MessageSquare, Check, X } from 'lucide-react';
+import { WasteListing, CATEGORY_LABELS, WasteCategory, MatchRecommendation, WasteTransaction } from '@/lib/types';
 import { db } from '@/lib/db';
 
 export default function GeneratorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [listings, setListings] = useState<WasteListing[]>([]);
+  const [incomingOffers, setIncomingOffers] = useState<WasteTransaction[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedListingForAi, setSelectedListingForAi] = useState<WasteListing | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<MatchRecommendation[]>([]);
@@ -54,7 +55,35 @@ export default function GeneratorDashboard() {
       }
     ];
 
+    // Seed Incoming Offers
+    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
+    const defaultIncomingOffers: WasteTransaction[] = [
+      {
+        id: 'tx-seed-1',
+        listing_id: 'lst-gen-1',
+        buyer_id: 'buy-demo-1',
+        generator_id: 'gen-demo-1',
+        status: 'penawaran_diajukan',
+        harga_penawaran_per_kg: 2000,
+        jumlah_kg_diminta: 500,
+        catatan_penawaran: 'Halo Kopi Kencana, kami ingin membeli seluruh pasokan 500kg ampas kopi ini untuk bahan dasar biofertilizer pabrik kami di Bogor.',
+        jadwal_pickup: 'Besok Jam 10.00 WIB',
+        konfirmasi_generator: false,
+        konfirmasi_buyer: true,
+        created_at: new Date().toISOString(),
+        buyer: {
+          id: 'buy-demo-1',
+          nama: 'PT Suburtani Makmur Biofertilizer',
+          email: 'buyer@demo.com',
+          role: 'buyer',
+          jenis_usaha: 'Produsen Biofertilizer & Pupuk Organik',
+          alamat: 'Kawasan Agribisnis, Bogor'
+        }
+      }
+    ];
+
     setListings(initialListings);
+    setIncomingOffers([...savedTxs, ...defaultIncomingOffers]);
   }, []);
 
   const handleAddListing = async (e: React.FormEvent) => {
@@ -72,7 +101,6 @@ export default function GeneratorDashboard() {
     };
 
     if (!navigator.onLine) {
-      // Save locally to Dexie IndexedDB
       await db.offlineListings.add({
         jenis_limbah: jenisLimbah,
         jumlah_kg: Number(jumlahKg),
@@ -96,6 +124,28 @@ export default function GeneratorDashboard() {
     }
   };
 
+  const handleAcceptOffer = (txId: string) => {
+    const updated = incomingOffers.map(tx => {
+      if (tx.id === txId) {
+        return {
+          ...tx,
+          status: 'disepakati' as const,
+          konfirmasi_generator: true
+        };
+      }
+      return tx;
+    });
+    setIncomingOffers(updated);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
+    alert('Penawaran Berhasil Disetujui! Status transaksi diperbarui menjadi Disepakati & Pembeli dapat menjadwalkan Self-Pickup.');
+  };
+
+  const handleDeclineOffer = (txId: string) => {
+    const updated = incomingOffers.filter(tx => tx.id !== txId);
+    setIncomingOffers(updated);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
+  };
+
   // Run AI Matching Engine
   const handleRunAiMatch = async (listing: WasteListing) => {
     setSelectedListingForAi(listing);
@@ -115,7 +165,6 @@ export default function GeneratorDashboard() {
       setAiRecommendations(data.recommendations || []);
     } catch (err) {
       console.error('Error fetching AI matches:', err);
-      // Fallback mock AI recommendations for demo resilience
       setAiRecommendations([
         {
           id: 'rec-1',
@@ -151,24 +200,6 @@ export default function GeneratorDashboard() {
             role: 'buyer',
             jenis_usaha: 'Petani Jamur Tiram',
             alamat: 'Jl. Raya Sawangan No. 12, Depok'
-          }
-        },
-        {
-          id: 'rec-3',
-          listing_id: listing.id,
-          buyer_id: 'buy-3',
-          ranking: 3,
-          kategori_pemanfaatan: 'Briket Energi Biomassa',
-          skor: 78,
-          alasan_teks: `🥉 Produsen "EnergiHijau Biomassa" memiliki kapasitas serap besar (1.000kg/minggu), namun menawarkan nilai ekonomi per kg yang lebih rendah (Rp 800/kg) dibanding opsi biofertilizer.`,
-          generated_at: new Date().toISOString(),
-          buyer: {
-            id: 'buy-3',
-            nama: 'EnergiHijau Biomassa Briket',
-            email: 'energi@hijau.id',
-            role: 'buyer',
-            jenis_usaha: 'Pabrik Briket & Energi Terbarukan',
-            alamat: 'Kawasan Industri Cikarang, Jawa Barat'
           }
         }
       ]);
@@ -206,6 +237,97 @@ export default function GeneratorDashboard() {
           >
             <Plus className="w-4 h-4" /> Buat Listing Limbah Baru
           </button>
+        </div>
+
+        {/* SECTION: Penawaran Masuk dari Buyer (B2B Incoming Offers) */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-emerald-600" /> Penawaran Masuk dari Buyer ({incomingOffers.length})
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">Real-Time B2B Offer Review</span>
+          </div>
+
+          {incomingOffers.length === 0 ? (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center text-xs text-slate-500 font-medium">
+              Belum ada penawaran baru yang masuk dari buyer.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {incomingOffers.map((tx) => (
+                <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase ${
+                      tx.status === 'penawaran_diajukan' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                      tx.status === 'disepakati' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {tx.status === 'penawaran_diajukan' ? 'Penawaran Baru Diajukan' : tx.status.toUpperCase()}
+                    </span>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-base font-extrabold text-slate-900">{tx.buyer?.nama}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{tx.buyer?.jenis_usaha}</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600 font-medium">Volume Pasokan Diminta:</span>
+                      <strong className="text-slate-900">{tx.jumlah_kg_diminta || 500} kg</strong>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600 font-medium">Harga Tawaran:</span>
+                      <strong className="text-emerald-700">Rp {(tx.harga_penawaran_per_kg || 2000).toLocaleString('id-ID')} / kg</strong>
+                    </div>
+                    <div className="flex items-center justify-between pt-1 border-t border-emerald-200">
+                      <span className="text-slate-800 font-bold">Total Nilai Penawaran:</span>
+                      <strong className="text-base font-extrabold text-emerald-800">
+                        Rp {((tx.jumlah_kg_diminta || 500) * (tx.harga_penawaran_per_kg || 2000)).toLocaleString('id-ID')}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {tx.catatan_penawaran && (
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                      <span className="text-slate-500 font-medium flex items-center gap-1">
+                        <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Catatan Buyer:
+                      </span>
+                      <p className="text-slate-700 italic font-medium">&quot;{tx.catatan_penawaran}&quot;</p>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>Usulan Pickup: <strong>{tx.jadwal_pickup || 'Sesuai kesepakatan'}</strong></span>
+                  </div>
+
+                  {tx.status === 'penawaran_diajukan' ? (
+                    <div className="pt-2 flex gap-3">
+                      <button
+                        onClick={() => handleDeclineOffer(tx.id)}
+                        className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
+                      >
+                        Tolak
+                      </button>
+                      <button
+                        onClick={() => handleAcceptOffer(tx.id)}
+                        className="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1"
+                      >
+                        <Check className="w-4 h-4" /> Setujui Penawaran
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Penawaran Disetujui! Menunggu Penjadwalan Pickup Buyer.
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Content Layout: Left = Active Listings, Right = AI Recommendation Panel */}

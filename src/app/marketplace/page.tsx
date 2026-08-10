@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Store, Filter, MapPin, Calendar, Scale, Sparkles, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
-import { WasteListing, CATEGORY_LABELS, WasteCategory } from '@/lib/types';
+import { Store, Filter, MapPin, Calendar, Scale, Sparkles, Building2, CheckCircle2, ArrowRight, DollarSign, Send, FileText, X, Check, Clock } from 'lucide-react';
+import { WasteListing, CATEGORY_LABELS, WasteCategory, WasteTransaction, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 
-// Seed Listings for Live Competition Demo
 const MOCK_LISTINGS: WasteListing[] = [
   {
     id: 'lst-101',
@@ -106,6 +105,93 @@ export default function MarketplacePage() {
   const [listings, setListings] = useState<WasteListing[]>(MOCK_LISTINGS);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+
+  // Offer Modal States
+  const [selectedListingForOffer, setSelectedListingForOffer] = useState<WasteListing | null>(null);
+  const [offerKg, setOfferKg] = useState<number>(500);
+  const [offerPricePerKg, setOfferPricePerKg] = useState<number>(2000);
+  const [offerNotes, setOfferNotes] = useState<string>('');
+  const [offerPickupSchedule, setOfferPickupSchedule] = useState<string>('Besok Jam 10.00 WIB');
+  const [offerSuccessMsg, setOfferSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('wastematch_user');
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Error parsing user profile:', e);
+      }
+    }
+  }, []);
+
+  const handleOpenOfferModal = (listing: WasteListing) => {
+    setSelectedListingForOffer(listing);
+    setOfferKg(listing.jumlah_kg);
+    setOfferPricePerKg(
+      listing.jenis_limbah === 'ampas_kopi' ? 2000 :
+      listing.jenis_limbah === 'sekam_padi' ? 1800 :
+      listing.jenis_limbah === 'kulit_buah_sayur' ? 1500 : 1200
+    );
+    setOfferNotes(`Halo ${listing.generator?.nama}, kami dari buyer tertarik mengambil pasokan material ini untuk pengolahan agribisnis.`);
+    setOfferPickupSchedule(listing.jadwal_tersedia || 'Setiap Hari Kerja');
+    setOfferSuccessMsg(null);
+  };
+
+  const handleQuickLoginAsBuyer = () => {
+    const mockBuyer: UserProfile = {
+      id: 'buy-demo-1',
+      nama: 'PT Suburtani Makmur Biofertilizer',
+      email: 'buyer@demo.com',
+      role: 'buyer',
+      jenis_usaha: 'Produsen Biofertilizer & Pupuk Hayati',
+      alamat: 'Kawasan Industri Agribisnis, Bogor',
+      no_hp: '081122334455'
+    };
+    localStorage.setItem('wastematch_user', JSON.stringify(mockBuyer));
+    setCurrentUser(mockBuyer);
+  };
+
+  const handleSubmitOffer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedListingForOffer) return;
+
+    const buyerUser = currentUser || {
+      id: 'buy-demo-1',
+      nama: 'PT Suburtani Makmur Biofertilizer',
+      email: 'buyer@demo.com',
+      role: 'buyer',
+      jenis_usaha: 'Produsen Biofertilizer & Organik',
+      alamat: 'Kawasan Agribisnis, Bogor',
+      no_hp: '081122334455'
+    };
+
+    const newTx: WasteTransaction = {
+      id: `tx-${Date.now()}`,
+      listing_id: selectedListingForOffer.id,
+      buyer_id: buyerUser.id,
+      generator_id: selectedListingForOffer.generator_id,
+      status: 'penawaran_diajukan',
+      harga_penawaran_per_kg: Number(offerPricePerKg),
+      jumlah_kg_diminta: Number(offerKg),
+      catatan_penawaran: offerNotes,
+      jadwal_pickup: offerPickupSchedule,
+      konfirmasi_generator: false,
+      konfirmasi_buyer: true,
+      created_at: new Date().toISOString(),
+      listing: selectedListingForOffer,
+      buyer: buyerUser,
+      generator: selectedListingForOffer.generator
+    };
+
+    // Store transaction locally in localStorage
+    const existingTxs = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
+    localStorage.setItem('wastematch_transactions', JSON.stringify([newTx, ...existingTxs]));
+
+    const totalVal = (Number(offerKg) * Number(offerPricePerKg)).toLocaleString('id-ID');
+    setOfferSuccessMsg(`Penawaran Resmi Sebesar Rp ${totalVal} (${offerKg}kg @ Rp ${offerPricePerKg}/kg) Berhasil Dikirimkan ke ${selectedListingForOffer.generator?.nama}!`);
+  };
 
   const filteredListings = listings.filter(item => {
     const matchesCategory = filterCategory === 'all' || item.jenis_limbah === filterCategory;
@@ -129,7 +215,7 @@ export default function MarketplacePage() {
             Pasokan Limbah Organik <span className="text-gradient">Terverifikasi Non-B3</span>
           </h1>
           <p className="text-sm md:text-base text-slate-600 font-medium leading-relaxed">
-            Jelajahi listing pasokan bahan baku limbah organik dari UMKM generator terverifikasi. Transaksi mandiri dengan skema Self-Pickup.
+            Jelajahi listing pasokan bahan baku limbah organik dari UMKM generator terverifikasi. Ajukan penawaran harga & tentukan jadwal Self-Pickup.
           </p>
         </div>
 
@@ -216,16 +302,174 @@ export default function MarketplacePage() {
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Self-Pickup Buyer
                 </span>
 
-                <Link
-                  href="/login"
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                <button
+                  onClick={() => handleOpenOfferModal(item)}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
                 >
-                  Ajukan Penawaran <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                  <DollarSign className="w-4 h-4" /> Ajukan Penawaran <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Modal Detail & Ajukan Penawaran Resmi */}
+        {selectedListingForOffer && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-xl p-6 md:p-8 rounded-3xl border border-emerald-200 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                    <Send className="w-5 h-5 text-emerald-600" /> Form Ajukan Penawaran Resmi B2B
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Kirimkan penawaran harga & spesifikasi jumlah pasokan ke pihak Generator
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedListingForOffer(null)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Status banner jika pengguna belum login sebagai buyer */}
+              {!currentUser && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+                  <span>Anda belum login sebagai Buyer. Gunakan preset Demo Buyer untuk langsung mencoba!</span>
+                  <button
+                    onClick={handleQuickLoginAsBuyer}
+                    className="px-3 py-1 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-500 transition-colors"
+                  >
+                    Masuk Akun Buyer
+                  </button>
+                </div>
+              )}
+
+              {offerSuccessMsg ? (
+                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-4 text-center">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                    <Check className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-extrabold text-emerald-900">Penawaran Berhasil Terkirim!</h4>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      {offerSuccessMsg}
+                    </p>
+                  </div>
+                  <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                    <Link
+                      href="/buyer/dashboard"
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md"
+                    >
+                      Pantau di Buyer Dashboard
+                    </Link>
+                    <button
+                      onClick={() => setSelectedListingForOffer(null)}
+                      className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs"
+                    >
+                      Tutup Modal
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitOffer} className="space-y-5">
+                  {/* Summary Box */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                    <div className="flex items-center justify-between font-bold text-slate-900">
+                      <span>{selectedListingForOffer.generator?.nama}</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px]">
+                        {(CATEGORY_LABELS[selectedListingForOffer.jenis_limbah] || selectedListingForOffer.jenis_limbah).split('(')[0]}
+                      </span>
+                    </div>
+                    <p className="text-slate-600 font-medium flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {selectedListingForOffer.lokasi_pickup}
+                    </p>
+                    <p className="text-slate-500 font-medium">
+                      Pasokan Tersedia: <strong>{selectedListingForOffer.jumlah_kg} kg</strong>
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Jumlah Diminta (kg)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={selectedListingForOffer.jumlah_kg}
+                        value={offerKg}
+                        onChange={(e) => setOfferKg(Number(e.target.value))}
+                        required
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Tawaran Harga per kg (Rp)</label>
+                      <input
+                        type="number"
+                        min="100"
+                        step="100"
+                        value={offerPricePerKg}
+                        onChange={(e) => setOfferPricePerKg(Number(e.target.value))}
+                        required
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculated Value Box */}
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between">
+                    <span className="text-slate-700 font-bold">Total Nilai Penawaran Transaksi:</span>
+                    <span className="text-lg font-extrabold text-emerald-800">
+                      Rp {(offerKg * offerPricePerKg).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Usulan Tanggal & Jam Self-Pickup</label>
+                    <input
+                      type="text"
+                      value={offerPickupSchedule}
+                      onChange={(e) => setOfferPickupSchedule(e.target.value)}
+                      required
+                      placeholder="Contoh: Besok Jam 10.00 WIB"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Catatan / Pesan untuk Generator</label>
+                    <textarea
+                      rows={3}
+                      value={offerNotes}
+                      onChange={(e) => setOfferNotes(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedListingForOffer(null)}
+                      className="w-1/2 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="w-1/2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5"
+                    >
+                      <Send className="w-4 h-4" /> Kirim Penawaran Resmi
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

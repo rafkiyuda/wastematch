@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Plus, Building2, Scale, DollarSign, AlertCircle, CheckCircle2, Calendar, MapPin, Trash2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Plus, Building2, Scale, DollarSign, AlertCircle, CheckCircle2, Calendar, MapPin, Trash2, ArrowRight, ShieldCheck, Clock, MessageSquare } from 'lucide-react';
 import { BuyerDemand, CATEGORY_LABELS, WasteCategory, WasteTransaction } from '@/lib/types';
 import { db } from '@/lib/db';
 
@@ -54,7 +54,8 @@ export default function BuyerDashboard() {
       }
     ];
 
-    // Seed Active Transactions for Self-Pickup Demo
+    // Seed Active Transactions & Submitted Offers
+    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
     const initialTransactions: WasteTransaction[] = [
       {
         id: 'tx-1001',
@@ -62,7 +63,10 @@ export default function BuyerDashboard() {
         buyer_id: 'buy-demo-1',
         generator_id: 'gen-demo-1',
         status: 'disepakati',
-        konfirmasi_generator: false,
+        harga_penawaran_per_kg: 2000,
+        jumlah_kg_diminta: 500,
+        catatan_penawaran: 'Pengambilan bahan baku biofertilizer.',
+        konfirmasi_generator: true,
         konfirmasi_buyer: false,
         created_at: new Date().toISOString(),
         listing: {
@@ -86,7 +90,7 @@ export default function BuyerDashboard() {
     ];
 
     setDemands(initialDemands);
-    setTransactions(initialTransactions);
+    setTransactions([...savedTxs, ...initialTransactions]);
   }, []);
 
   const handleAddDemand = async (e: React.FormEvent) => {
@@ -127,32 +131,36 @@ export default function BuyerDashboard() {
     e.preventDefault();
     if (!selectedTxForSchedule) return;
 
-    setTransactions(transactions.map(tx => {
+    const updated = transactions.map(tx => {
       if (tx.id === selectedTxForSchedule.id) {
         return {
           ...tx,
-          status: 'dijadwalkan',
+          status: 'dijadwalkan' as const,
           jadwal_pickup: pickupDate
         };
       }
       return tx;
-    }));
+    });
 
+    setTransactions(updated);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
     setShowScheduleModal(false);
     setSelectedTxForSchedule(null);
   };
 
   const handleTwoWayConfirm = (txId: string) => {
-    setTransactions(transactions.map(tx => {
+    const updated = transactions.map(tx => {
       if (tx.id === txId) {
         return {
           ...tx,
           konfirmasi_buyer: true,
-          status: 'selesai'
+          status: 'selesai' as const
         };
       }
       return tx;
-    }));
+    });
+    setTransactions(updated);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
   };
 
   return (
@@ -243,38 +251,60 @@ export default function BuyerDashboard() {
           {/* Right: Active Transactions & Self-Pickup Scheduling */}
           <div className="lg:col-span-6 space-y-4">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-600" /> Transaksi & Penjadwalan Pickup ({transactions.length})
+              <Calendar className="w-5 h-5 text-emerald-600" /> Penawaran Diajukan & Status Pickup ({transactions.length})
             </h2>
 
             <div className="space-y-4">
               {transactions.map((tx) => (
                 <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Status: {tx.status.toUpperCase()}
+                    <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
+                      tx.status === 'penawaran_diajukan' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                      tx.status === 'disepakati' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                      tx.status === 'dijadwalkan' ? 'bg-teal-100 text-teal-900 border border-teal-200' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                    }`}>
+                      STATUS: {tx.status === 'penawaran_diajukan' ? 'PENAWARAN MENUNGGU RESPONS' : tx.status.toUpperCase()}
                     </span>
                     <span className="text-xs text-slate-500 font-medium">Self-Pickup Model</span>
                   </div>
 
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-slate-900">
-                      Penjual: {tx.generator?.nama}
+                      Penjual: {tx.generator?.nama || tx.listing?.generator?.nama || 'Kopi Kencana Espresso'}
                     </h3>
                     <p className="text-xs text-slate-700 font-medium flex items-center gap-1.5">
-                      <Scale className="w-4 h-4 text-emerald-600" /> Pasokan Material: <strong>{tx.listing?.jumlah_kg}kg Ampas Kopi</strong>
+                      <Scale className="w-4 h-4 text-emerald-600" /> Pasokan Material: <strong>{tx.jumlah_kg_diminta || tx.listing?.jumlah_kg || 500}kg</strong>
                     </p>
                   </div>
 
-                  {/* Privacy Alamat Pickup (Hanya Muncul Setelah Kesepakatan) */}
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-emerald-200 space-y-1">
-                    <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Alamat Pickup Lokasi Generator (Privat Terbuka):
-                    </span>
-                    <p className="text-xs text-slate-800 font-semibold">{tx.listing?.lokasi_pickup}</p>
-                    <p className="text-[11px] text-slate-500 font-medium">WhatsApp Penjual: {tx.generator?.no_hp}</p>
+                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600 font-medium">Harga Penawaran Anda:</span>
+                      <strong className="text-emerald-700">Rp {(tx.harga_penawaran_per_kg || 2000).toLocaleString('id-ID')} / kg</strong>
+                    </div>
+                    <div className="flex items-center justify-between pt-1 border-t border-emerald-200">
+                      <span className="text-slate-800 font-bold">Total Nilai Penawaran:</span>
+                      <strong className="text-base font-extrabold text-emerald-800">
+                        Rp {((tx.jumlah_kg_diminta || 500) * (tx.harga_penawaran_per_kg || 2000)).toLocaleString('id-ID')}
+                      </strong>
+                    </div>
                   </div>
 
-                  {tx.status === 'disepakati' ? (
+                  {/* Privacy Alamat Pickup (Hanya Muncul Setelah Kesepakatan) */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Alamat Pickup Lokasi Generator:
+                    </span>
+                    <p className="text-xs text-slate-800 font-semibold">{tx.listing?.lokasi_pickup || 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan'}</p>
+                    <p className="text-[11px] text-slate-500 font-medium">WhatsApp Penjual: {tx.generator?.no_hp || '081299887766'}</p>
+                  </div>
+
+                  {tx.status === 'penawaran_diajukan' ? (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+                      Penawaran resmi telah terkirim. Menunggu konfirmasi persetujuan dari pihak Generator.
+                    </div>
+                  ) : tx.status === 'disepakati' ? (
                     <button
                       onClick={() => {
                         setSelectedTxForSchedule(tx);
