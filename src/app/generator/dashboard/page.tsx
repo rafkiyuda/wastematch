@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Plus, Store, Scale, MapPin, Calendar, Sparkles, Trash2, Edit3, CheckCircle2, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, DollarSign, MessageSquare, Check, X } from 'lucide-react';
+import { Plus, Store, Scale, MapPin, Calendar, Sparkles, Trash2, Edit3, CheckCircle2, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, DollarSign, MessageSquare, Check, X, Layers, Inbox } from 'lucide-react';
 import { WasteListing, CATEGORY_LABELS, WasteCategory, MatchRecommendation, WasteTransaction } from '@/lib/types';
 import { db } from '@/lib/db';
 
@@ -12,6 +12,8 @@ export default function GeneratorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [listings, setListings] = useState<WasteListing[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<WasteTransaction[]>([]);
+  const [activeTab, setActiveTab] = useState<'offers' | 'listings' | 'ai_match'>('offers');
+  
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedListingForAi, setSelectedListingForAi] = useState<WasteListing | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<MatchRecommendation[]>([]);
@@ -114,6 +116,7 @@ export default function GeneratorDashboard() {
 
     setListings([newListing, ...listings]);
     setShowAddModal(false);
+    setActiveTab('listings');
   };
 
   const handleDeleteListing = (id: string) => {
@@ -149,6 +152,7 @@ export default function GeneratorDashboard() {
   // Run AI Matching Engine
   const handleRunAiMatch = async (listing: WasteListing) => {
     setSelectedListingForAi(listing);
+    setActiveTab('ai_match');
     setAiLoading(true);
     setAiRecommendations([]);
 
@@ -208,6 +212,8 @@ export default function GeneratorDashboard() {
     }
   };
 
+  const pendingOffersCount = incomingOffers.filter(tx => tx.status === 'penawaran_diajukan').length;
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
       <Navbar />
@@ -239,106 +245,158 @@ export default function GeneratorDashboard() {
           </button>
         </div>
 
-        {/* SECTION: Penawaran Masuk dari Buyer (B2B Incoming Offers) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-emerald-600" /> Penawaran Masuk dari Buyer ({incomingOffers.length})
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">Real-Time B2B Offer Review</span>
-          </div>
+        {/* TAB NAVIGATION BAR */}
+        <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <button
+            onClick={() => setActiveTab('offers')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'offers'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Inbox className="w-4 h-4" /> Penawaran Masuk
+            {pendingOffersCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold">
+                {pendingOffersCount} Baru
+              </span>
+            )}
+          </button>
 
-          {incomingOffers.length === 0 ? (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center text-xs text-slate-500 font-medium">
-              Belum ada penawaran baru yang masuk dari buyer.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {incomingOffers.map((tx) => (
-                <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase ${
-                      tx.status === 'penawaran_diajukan' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
-                      tx.status === 'disepakati' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {tx.status === 'penawaran_diajukan' ? 'Penawaran Baru Diajukan' : tx.status.toUpperCase()}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
+          <button
+            onClick={() => setActiveTab('listings')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'listings'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Store className="w-4 h-4" /> Pasokan Limbah Saya ({listings.length})
+          </button>
 
-                  <div className="space-y-1">
-                    <h3 className="text-base font-extrabold text-slate-900">{tx.buyer?.nama}</h3>
-                    <p className="text-xs text-slate-500 font-medium">{tx.buyer?.jenis_usaha}</p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600 font-medium">Volume Pasokan Diminta:</span>
-                      <strong className="text-slate-900">{tx.jumlah_kg_diminta || 500} kg</strong>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600 font-medium">Harga Tawaran:</span>
-                      <strong className="text-emerald-700">Rp {(tx.harga_penawaran_per_kg || 2000).toLocaleString('id-ID')} / kg</strong>
-                    </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-emerald-200">
-                      <span className="text-slate-800 font-bold">Total Nilai Penawaran:</span>
-                      <strong className="text-base font-extrabold text-emerald-800">
-                        Rp {((tx.jumlah_kg_diminta || 500) * (tx.harga_penawaran_per_kg || 2000)).toLocaleString('id-ID')}
-                      </strong>
-                    </div>
-                  </div>
-
-                  {tx.catatan_penawaran && (
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
-                      <span className="text-slate-500 font-medium flex items-center gap-1">
-                        <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Catatan Buyer:
-                      </span>
-                      <p className="text-slate-700 italic font-medium">&quot;{tx.catatan_penawaran}&quot;</p>
-                    </div>
-                  )}
-
-                  <div className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>Usulan Pickup: <strong>{tx.jadwal_pickup || 'Sesuai kesepakatan'}</strong></span>
-                  </div>
-
-                  {tx.status === 'penawaran_diajukan' ? (
-                    <div className="pt-2 flex gap-3">
-                      <button
-                        onClick={() => handleDeclineOffer(tx.id)}
-                        className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
-                      >
-                        Tolak
-                      </button>
-                      <button
-                        onClick={() => handleAcceptOffer(tx.id)}
-                        className="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1"
-                      >
-                        <Check className="w-4 h-4" /> Setujui Penawaran
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Penawaran Disetujui! Menunggu Penjadwalan Pickup Buyer.
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <button
+            onClick={() => setActiveTab('ai_match')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'ai_match'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-emerald-400" /> AI Matching Engine
+          </button>
         </div>
 
-        {/* Content Layout: Left = Active Listings, Right = AI Recommendation Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column (Listings) */}
-          <div className="lg:col-span-6 space-y-4">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Store className="w-5 h-5 text-emerald-600" /> Listing Limbah Aktif Anda ({listings.length})
-            </h2>
+        {/* TAB 1: PENAWARAN MASUK */}
+        {activeTab === 'offers' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-emerald-600" /> Penawaran Masuk dari Buyer ({incomingOffers.length})
+              </h2>
+              <span className="text-xs text-slate-500 font-medium">Real-Time B2B Offer Review</span>
+            </div>
 
-            <div className="space-y-4">
+            {incomingOffers.length === 0 ? (
+              <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-sm text-center space-y-2">
+                <Inbox className="w-10 h-10 text-slate-400 mx-auto" />
+                <h3 className="text-base font-bold text-slate-800">Belum Ada Penawaran Baru</h3>
+                <p className="text-xs text-slate-500 font-medium">Penawaran yang diajukan oleh pembeli agribisnis dari Marketplace akan muncul di tab ini.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {incomingOffers.map((tx) => (
+                  <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase ${
+                        tx.status === 'penawaran_diajukan' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                        tx.status === 'disepakati' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {tx.status === 'penawaran_diajukan' ? 'Penawaran Baru Diajukan' : tx.status.toUpperCase()}
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="text-base font-extrabold text-slate-900">{tx.buyer?.nama}</h3>
+                      <p className="text-xs text-slate-500 font-medium">{tx.buyer?.jenis_usaha}</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600 font-medium">Volume Pasokan Diminta:</span>
+                        <strong className="text-slate-900">{tx.jumlah_kg_diminta || 500} kg</strong>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600 font-medium">Harga Tawaran:</span>
+                        <strong className="text-emerald-700">Rp {(tx.harga_penawaran_per_kg || 2000).toLocaleString('id-ID')} / kg</strong>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-emerald-200">
+                        <span className="text-slate-800 font-bold">Total Nilai Penawaran:</span>
+                        <strong className="text-base font-extrabold text-emerald-800">
+                          Rp {((tx.jumlah_kg_diminta || 500) * (tx.harga_penawaran_per_kg || 2000)).toLocaleString('id-ID')}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {tx.catatan_penawaran && (
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                        <span className="text-slate-500 font-medium flex items-center gap-1">
+                          <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Catatan Buyer:
+                        </span>
+                        <p className="text-slate-700 italic font-medium">&quot;{tx.catatan_penawaran}&quot;</p>
+                      </div>
+                    )}
+
+                    <div className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span>Usulan Pickup: <strong>{tx.jadwal_pickup || 'Sesuai kesepakatan'}</strong></span>
+                    </div>
+
+                    {tx.status === 'penawaran_diajukan' ? (
+                      <div className="pt-2 flex gap-3">
+                        <button
+                          onClick={() => handleDeclineOffer(tx.id)}
+                          className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
+                        >
+                          Tolak
+                        </button>
+                        <button
+                          onClick={() => handleAcceptOffer(tx.id)}
+                          className="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1"
+                        >
+                          <Check className="w-4 h-4" /> Setujui Penawaran
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Penawaran Disetujui! Menunggu Penjadwalan Pickup Buyer.
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: PASOKAN LIMBAH SAYA */}
+        {activeTab === 'listings' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Store className="w-5 h-5 text-emerald-600" /> Listing Limbah Aktif Anda ({listings.length})
+              </h2>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Tambah Listing
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {listings.map((item) => (
                 <div
                   key={item.id}
@@ -391,20 +449,37 @@ export default function GeneratorDashboard() {
               ))}
             </div>
           </div>
+        )}
 
-          {/* Right Column (AI Match Results Panel) */}
-          <div className="lg:col-span-6 space-y-4">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" /> Hasil Rekomendasi AI Engine (2-Lapis)
-            </h2>
+        {/* TAB 3: AI MATCHING ENGINE */}
+        {activeTab === 'ai_match' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-emerald-600" /> Hasil Rekomendasi AI Engine (2-Lapis)
+              </h2>
+              {selectedListingForAi && (
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Target: {CATEGORY_LABELS[selectedListingForAi.jenis_limbah]} ({selectedListingForAi.jumlah_kg}kg)
+                </span>
+              )}
+            </div>
 
             {!selectedListingForAi ? (
-              <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-md text-center space-y-3">
-                <Sparkles className="w-10 h-10 text-slate-400 mx-auto" />
-                <h3 className="text-base font-bold text-slate-800">Pilih Listing di Sebelah Kiri</h3>
-                <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
-                  Klik tombol &quot;Dapatkan Rekomendasi AI Matching&quot; pada salah satu listing untuk mengkalkulasi ranking buyer terbaik bernilai ekonomi tertinggi.
-                </p>
+              <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-md text-center space-y-4">
+                <Sparkles className="w-12 h-12 text-slate-400 mx-auto" />
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-slate-800">Belum Ada Listing Terpilih</h3>
+                  <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
+                    Buka tab <strong>&quot;Pasokan Limbah Saya&quot;</strong> lalu klik tombol <strong>&quot;Dapatkan Rekomendasi AI Matching&quot;</strong> untuk menganalisis pemanfaatan bernilai ekonomi tertinggi.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('listings')}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm"
+                >
+                  Pilih dari Listing Saya
+                </button>
               </div>
             ) : aiLoading ? (
               <div className="bg-white p-12 rounded-2xl border border-emerald-300 shadow-md text-center space-y-4">
@@ -418,11 +493,6 @@ export default function GeneratorDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between font-medium">
-                  <span>Hasil Analisis AI untuk: <strong>{CATEGORY_LABELS[selectedListingForAi.jenis_limbah] || selectedListingForAi.jenis_limbah} ({selectedListingForAi.jumlah_kg}kg)</strong></span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-600 text-[10px] font-extrabold text-white">Live Gemini RAG</span>
-                </div>
-
                 {aiRecommendations.map((rec) => (
                   <div key={rec.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-3 relative overflow-hidden">
                     <div className="flex items-center justify-between">
@@ -454,7 +524,7 @@ export default function GeneratorDashboard() {
               </div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Modal Tambah Listing Baru */}
         {showAddModal && (

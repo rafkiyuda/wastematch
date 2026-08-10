@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Plus, Building2, Scale, DollarSign, AlertCircle, CheckCircle2, Calendar, MapPin, Trash2, ArrowRight, ShieldCheck, Clock, MessageSquare } from 'lucide-react';
+import { Plus, Building2, Scale, DollarSign, AlertCircle, CheckCircle2, Calendar, MapPin, Trash2, ArrowRight, ShieldCheck, Clock, MessageSquare, Truck, Layers, Inbox } from 'lucide-react';
 import { BuyerDemand, CATEGORY_LABELS, WasteCategory, WasteTransaction } from '@/lib/types';
 import { db } from '@/lib/db';
 
@@ -12,6 +12,8 @@ export default function BuyerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [demands, setDemands] = useState<BuyerDemand[]>([]);
   const [transactions, setTransactions] = useState<WasteTransaction[]>([]);
+  const [activeTab, setActiveTab] = useState<'offers' | 'demands' | 'logistics'>('offers');
+
   const [showAddDemandModal, setShowAddDemandModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedTxForSchedule, setSelectedTxForSchedule] = useState<WasteTransaction | null>(null);
@@ -121,6 +123,7 @@ export default function BuyerDashboard() {
 
     setDemands([newDemand, ...demands]);
     setShowAddDemandModal(false);
+    setActiveTab('demands');
   };
 
   const handleDeleteDemand = (id: string) => {
@@ -146,6 +149,7 @@ export default function BuyerDashboard() {
     localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
     setShowScheduleModal(false);
     setSelectedTxForSchedule(null);
+    setActiveTab('logistics');
   };
 
   const handleTwoWayConfirm = (txId: string) => {
@@ -194,67 +198,53 @@ export default function BuyerDashboard() {
           </button>
         </div>
 
-        {/* Demand & Transactions Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left: Active Demands */}
-          <div className="lg:col-span-6 space-y-4">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Scale className="w-5 h-5 text-teal-600" /> Kebutuhan Demand Pasokan Anda ({demands.length})
-            </h2>
+        {/* TAB NAVIGATION BAR */}
+        <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <button
+            onClick={() => setActiveTab('offers')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'offers'
+                ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" /> Penawaran Diajukan ({transactions.length})
+          </button>
 
-            <div className="space-y-4">
-              {demands.map((dem) => (
-                <div key={dem.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                      {(CATEGORY_LABELS[dem.jenis_limbah_dicari] || dem.jenis_limbah_dicari).split('(')[0]}
-                    </span>
+          <button
+            onClick={() => setActiveTab('demands')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'demands'
+                ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Scale className="w-4 h-4" /> Target Kebutuhan Pasokan ({demands.length})
+          </button>
 
-                    <button
-                      onClick={() => handleDeleteDemand(dem.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors"
-                      title="Hapus Demand"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+          <button
+            onClick={() => setActiveTab('logistics')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === 'logistics'
+                ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Truck className="w-4 h-4" /> Logistik & Self-Pickup
+          </button>
+        </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                      <span className="text-[11px] text-slate-500 block font-medium">Target per Minggu:</span>
-                      <span className="text-lg font-extrabold text-teal-700">
-                        {dem.jumlah_dibutuhkan_per_minggu.toLocaleString('id-ID')} <span className="text-xs text-slate-500 font-normal">kg</span>
-                      </span>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                      <span className="text-[11px] text-slate-500 block font-medium">Tawaran Harga Beli:</span>
-                      <span className="text-lg font-extrabold text-emerald-700">
-                        Rp {dem.harga_ditawarkan_per_kg.toLocaleString('id-ID')} <span className="text-xs text-slate-500 font-normal">/ kg</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-slate-500 font-medium">Tingkat Urgensi:</span>
-                    <span className={`font-bold capitalize px-2.5 py-0.5 rounded-full ${
-                      dem.tingkat_urgensi === 'tinggi' ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
-                    }`}>
-                      {dem.tingkat_urgensi}
-                    </span>
-                  </div>
-                </div>
-              ))}
+        {/* TAB 1: PENAWARAN DIAJUKAN */}
+        {activeTab === 'offers' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-teal-600" /> Penawaran Diajukan & Status Respons ({transactions.length})
+              </h2>
+              <span className="text-xs text-slate-500 font-medium">B2B Offers & Transactions</span>
             </div>
-          </div>
 
-          {/* Right: Active Transactions & Self-Pickup Scheduling */}
-          <div className="lg:col-span-6 space-y-4">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-600" /> Penawaran Diajukan & Status Pickup ({transactions.length})
-            </h2>
-
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {transactions.map((tx) => (
                 <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between">
@@ -337,7 +327,123 @@ export default function BuyerDashboard() {
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* TAB 2: TARGET KEBUTUHAN PASOKAN */}
+        {activeTab === 'demands' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Scale className="w-5 h-5 text-teal-600" /> Target Kebutuhan Pasokan Anda ({demands.length})
+              </h2>
+              <button
+                onClick={() => setShowAddDemandModal(true)}
+                className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Input Kebutuhan Baru
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {demands.map((dem) => (
+                <div key={dem.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                      {(CATEGORY_LABELS[dem.jenis_limbah_dicari] || dem.jenis_limbah_dicari).split('(')[0]}
+                    </span>
+
+                    <button
+                      onClick={() => handleDeleteDemand(dem.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Hapus Demand"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="text-[11px] text-slate-500 block font-medium">Target per Minggu:</span>
+                      <span className="text-lg font-extrabold text-teal-700">
+                        {dem.jumlah_dibutuhkan_per_minggu.toLocaleString('id-ID')} <span className="text-xs text-slate-500 font-normal">kg</span>
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="text-[11px] text-slate-500 block font-medium">Tawaran Harga Beli:</span>
+                      <span className="text-lg font-extrabold text-emerald-700">
+                        Rp {dem.harga_ditawarkan_per_kg.toLocaleString('id-ID')} <span className="text-xs text-slate-500 font-normal">/ kg</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <span className="text-slate-500 font-medium">Tingkat Urgensi:</span>
+                    <span className={`font-bold capitalize px-2.5 py-0.5 rounded-full ${
+                      dem.tingkat_urgensi === 'tinggi' ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                    }`}>
+                      {dem.tingkat_urgensi}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: LOGISTIK & SELF-PICKUP */}
+        {activeTab === 'logistics' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Truck className="w-5 h-5 text-teal-600" /> Penjadwalan & Status Armada Self-Pickup
+              </h2>
+              <span className="text-xs text-slate-500 font-medium">Asset-Light Logistics Facilitator</span>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4">
+              <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-900 leading-relaxed font-medium">
+                <strong>Catatan Model Self-Pickup:</strong> Platform WasteMatch bertindak sebagai fasilitator informasi. Pembeli (Buyer) bertanggung jawab menyiapkan armada pengangkutan langsung ke titik lokasi penjemputan Generator sesuai tanggal yang disepakati.
+              </div>
+
+              {transactions.filter(t => t.status === 'dijadwalkan' || t.status === 'selesai').length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">
+                  Belum ada penjemputan yang sedang dijadwalkan.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {transactions.filter(t => t.status === 'dijadwalkan' || t.status === 'selesai').map(tx => (
+                    <div key={tx.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+                      <div className="space-y-1">
+                        <span className="font-extrabold text-slate-900">{tx.generator?.nama || 'Kopi Kencana Espresso'}</span>
+                        <p className="text-slate-600">{tx.listing?.lokasi_pickup || 'Jl. Senopati No. 88, Kebayoran Baru'}</p>
+                        <p className="text-emerald-700 font-bold">Material: {tx.jumlah_kg_diminta || 500}kg Ampas Kopi</p>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 font-extrabold text-[10px]">
+                          JADWAL: {tx.jadwal_pickup || 'Besok, 10.00 WIB'}
+                        </span>
+                        {tx.status === 'selesai' ? (
+                          <span className="text-emerald-700 font-extrabold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Selesai
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleTwoWayConfirm(tx.id)}
+                            className="px-3 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-[11px]"
+                          >
+                            Konfirmasi Selesai
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Modal Input Demand Baru */}
         {showAddDemandModal && (
