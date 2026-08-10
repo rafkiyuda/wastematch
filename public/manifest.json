@@ -1,0 +1,21 @@
+{
+  "name": "WasteMatch — B2B Organic Waste Marketplace",
+  "short_name": "WasteMatch",
+  "description": "Platform B2B marketplace limbah organik berbasis Gemini AI Reasoning Engine",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/file.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/globe.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
