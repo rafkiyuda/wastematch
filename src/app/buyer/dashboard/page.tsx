@@ -33,8 +33,16 @@ export default function BuyerDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem('temutani_user') || localStorage.getItem('wastematch_user');
     if (stored) {
-      const u = JSON.parse(stored);
-      setUser(u);
+      try {
+        const u = JSON.parse(stored);
+        if (u.role === 'generator') {
+          window.location.href = '/generator/dashboard';
+          return;
+        }
+        setUser(u);
+      } catch (e) {
+        console.error('Failed parsing user profile:', e);
+      }
     }
 
     // Default Seed Demands for Buyer Demo

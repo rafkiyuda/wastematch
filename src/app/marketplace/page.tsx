@@ -347,12 +347,21 @@ export default function MarketplacePage() {
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Self-Pickup Buyer
                 </span>
 
-                <button
-                  onClick={() => handleOpenOfferModal(item)}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
-                >
-                  <DollarSign className="w-4 h-4" /> Ajukan Penawaran <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                {currentUser?.role === 'generator' ? (
+                  <Link
+                    href="/generator/dashboard"
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                  >
+                    <Store className="w-4 h-4 text-emerald-400" /> Kelola Pasokan Limbah 🌾
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleOpenOfferModal(item)}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+                  >
+                    <DollarSign className="w-4 h-4" /> Ajukan Penawaran <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

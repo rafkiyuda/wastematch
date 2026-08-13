@@ -41,9 +41,17 @@ export default function GeneratorDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem('temutani_user') || localStorage.getItem('wastematch_user');
     if (stored) {
-      const u = JSON.parse(stored);
-      setUser(u);
-      setLokasiPickup(u.alamat || 'Desa Sukamaju, Kec. Rawamerta, Karawang');
+      try {
+        const u = JSON.parse(stored);
+        if (u.role === 'buyer') {
+          window.location.href = '/buyer/dashboard';
+          return;
+        }
+        setUser(u);
+        setLokasiPickup(u.alamat || 'Desa Sukamaju, Kec. Rawamerta, Karawang');
+      } catch (e) {
+        console.error('Failed parsing user profile:', e);
+      }
     }
 
     // Default Seed Listings for Gapoktan Generator Demo
