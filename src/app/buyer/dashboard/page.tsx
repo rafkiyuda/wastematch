@@ -437,7 +437,7 @@ export default function BuyerDashboard() {
 
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4">
               <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-900 leading-relaxed font-medium">
-                <strong>Catatan Model Self-Pickup:</strong> Platform WasteMatch bertindak sebagai fasilitator informasi. Pembeli (Buyer) bertanggung jawab menyiapkan armada pengangkutan langsung ke titik lokasi penjemputan Generator sesuai tanggal yang disepakati.
+                <strong>Catatan Model Self-Pickup:</strong> Platform TemuTani bertindak sebagai fasilitator informasi. Pembeli (Buyer) bertanggung jawab menyiapkan armada pengangkutan langsung ke titik lokasi penjemputan Generator sesuai tanggal yang disepakati.
               </div>
 
               {transactions.filter(t => t.status === 'dijadwalkan' || t.status === 'selesai').length === 0 ? (

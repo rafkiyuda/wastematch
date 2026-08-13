@@ -177,7 +177,7 @@ export default function MarketplacePage() {
       {
         id: `msg-sys-1`,
         sender_id: 'system',
-        sender_name: 'Sistem WasteMatch',
+        sender_name: 'Sistem TemuTani',
         sender_role: 'system',
         text: `Thread negosiasi diajukan oleh pembeli ${buyerUser.nama}.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

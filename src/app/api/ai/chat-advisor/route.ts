@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       role: 'generator' | 'buyer';
     };
 
-    const prompt = `Anda adalah WasteMatch AI B2B Negotiation Advisor (Pakar Negosiasi Limbah Organik B2B).
+    const prompt = `Anda adalah TemuTani AI B2B Negotiation Advisor (Pakar Negosiasi Limbah Organik B2B).
 Tugas Anda adalah memberikan analisis singkat dan relevan (dalam 2-3 kalimat Bahasa Indonesia) mengenai penawaran harga & volume berikut:
 
 Detail Transaksi:
