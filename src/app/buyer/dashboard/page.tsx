@@ -97,7 +97,9 @@ export default function BuyerDashboard() {
     ];
 
     setDemands(initialDemands);
-    setTransactions([...savedTxs, ...initialTransactions]);
+    const combinedTxs = [...savedTxs, ...initialTransactions];
+    const uniqueTxs = Array.from(new Map(combinedTxs.map(tx => [tx.id, tx])).values());
+    setTransactions(uniqueTxs);
   }, []);
 
   const handleAddDemand = async (e: React.FormEvent) => {
@@ -257,8 +259,8 @@ export default function BuyerDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
+              {transactions.map((tx, idx) => (
+                <div key={`${tx.id}-${idx}`} className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md space-y-4">
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
                       tx.status === 'penawaran_diajukan' ? 'bg-amber-100 text-amber-900 border border-amber-200' :

@@ -98,7 +98,9 @@ export default function GeneratorDashboard() {
     ];
 
     setListings(initialListings);
-    setIncomingOffers([...savedTxs, ...defaultIncomingOffers]);
+    const combinedOffers = [...savedTxs, ...defaultIncomingOffers];
+    const uniqueOffers = Array.from(new Map(combinedOffers.map(tx => [tx.id, tx])).values());
+    setIncomingOffers(uniqueOffers);
   }, []);
 
   const handleAddListing = async (e: React.FormEvent) => {
