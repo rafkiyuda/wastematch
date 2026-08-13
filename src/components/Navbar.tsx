@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Leaf, Menu, X, User, LogOut, Sparkles, Building2, Store, Sprout } from 'lucide-react';
+import { Menu, X, User, LogOut, Sparkles, Building2, Store, Sprout, Handshake, Target } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 
 export default function Navbar() {
@@ -27,6 +27,10 @@ export default function Navbar() {
     window.location.href = '/';
   };
 
+  const isGenerator = currentUser?.role === 'generator';
+  const isBuyer = currentUser?.role === 'buyer';
+  const dashboardPath = isBuyer ? '/buyer/dashboard' : '/generator/dashboard';
+
   return (
     <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 z-50 px-6 h-16 flex items-center justify-between shadow-lg shadow-slate-200/50 transition-all duration-300">
       {/* Brand Logo */}
@@ -42,20 +46,33 @@ export default function Navbar() {
         </div>
       </Link>
 
-      {/* Desktop Navigation Links */}
+      {/* Desktop Navigation Links (Role-Aware & Hidden if Not Accessible) */}
       <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
         <Link href="/marketplace" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
           <Store className="w-4 h-4 text-emerald-600" />
-          Marketplace Pasokan
+          Pasokan Limbah
         </Link>
-        <Link href="/knowledge-base" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
-          <Leaf className="w-4 h-4 text-emerald-600" />
-          Knowledge Base
+
+        <Link href={dashboardPath} className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+          <Handshake className="w-4 h-4 text-emerald-600" />
+          Penawaran & Transaksi
         </Link>
-        <Link href="/#features" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-emerald-600" />
-          AI Matching Engine
-        </Link>
+
+        {/* Target Kebutuhan (Khusus Buyer / Publik) */}
+        {(!currentUser || isBuyer) && (
+          <Link href="/buyer/dashboard" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-emerald-600" />
+            Target Kebutuhan
+          </Link>
+        )}
+
+        {/* Rekomendasi AI (Khusus Gapoktan / Publik) */}
+        {(!currentUser || isGenerator) && (
+          <Link href="/generator/dashboard" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+            Rekomendasi AI
+          </Link>
+        )}
       </nav>
 
       {/* Auth / Profile Actions */}
@@ -63,13 +80,13 @@ export default function Navbar() {
         {currentUser ? (
           <div className="flex items-center gap-3">
             <Link
-              href={currentUser.role === 'generator' ? '/generator/dashboard' : '/buyer/dashboard'}
+              href={dashboardPath}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all shadow-sm"
             >
               <Building2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>{currentUser.nama_gapoktan || currentUser.nama}</span>
               <span className="capitalize px-2 py-0.5 rounded bg-emerald-600 text-[10px] text-white font-semibold">
-                {currentUser.role === 'generator' ? 'Gapoktan / Kelompok Tani' : 'Pembeli Limbah'}
+                {isGenerator ? 'Gapoktan' : 'Pembeli Limbah'}
               </span>
             </Link>
 
@@ -118,24 +135,48 @@ export default function Navbar() {
             className="flex items-center gap-3 text-slate-700 hover:text-emerald-600 font-semibold py-2 border-b border-slate-100"
           >
             <Store className="w-5 h-5 text-emerald-600" />
-            Marketplace Pasokan
+            Pasokan Limbah
           </Link>
+          
           <Link
-            href="/knowledge-base"
+            href={dashboardPath}
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-3 text-slate-700 hover:text-emerald-600 font-semibold py-2 border-b border-slate-100"
           >
-            <Leaf className="w-5 h-5 text-emerald-600" />
-            Knowledge Base Literatur
+            <Handshake className="w-5 h-5 text-emerald-600" />
+            Penawaran & Transaksi
           </Link>
+
+          {(!currentUser || isBuyer) && (
+            <Link
+              href="/buyer/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 text-slate-700 hover:text-emerald-600 font-semibold py-2 border-b border-slate-100"
+            >
+              <Target className="w-5 h-5 text-emerald-600" />
+              Target Kebutuhan
+            </Link>
+          )}
+
+          {(!currentUser || isGenerator) && (
+            <Link
+              href="/generator/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 text-slate-700 hover:text-emerald-600 font-semibold py-2 border-b border-slate-100"
+            >
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              Rekomendasi AI
+            </Link>
+          )}
+
           {currentUser ? (
             <div className="flex flex-col gap-2 pt-2">
               <Link
-                href={currentUser.role === 'generator' ? '/generator/dashboard' : '/buyer/dashboard'}
+                href={dashboardPath}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2.5 px-4 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-center border border-emerald-200"
               >
-                Dashboard {currentUser.role === 'generator' ? 'Gapoktan' : 'Pembeli Limbah'}
+                Dashboard {isGenerator ? 'Gapoktan' : 'Pembeli Limbah'}
               </Link>
               <button
                 onClick={handleLogout}
