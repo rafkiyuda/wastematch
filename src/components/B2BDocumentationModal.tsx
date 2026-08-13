@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, FileText, Truck, Scale, ShieldCheck, CheckCircle2, DollarSign, Printer } from 'lucide-react';
+import { X, FileText, Truck, Scale, ShieldCheck, CheckCircle2, DollarSign, Printer, Lock } from 'lucide-react';
 import { WasteTransaction, CATEGORY_LABELS, WasteCategory } from '@/lib/types';
 
 interface B2BDocumentationModalProps {
@@ -32,6 +32,7 @@ export default function B2BDocumentationModal({
 
   if (!isOpen || !transaction) return null;
 
+  const isAgreed = ['disepakati', 'dijadwalkan', 'selesai'].includes(transaction.status);
   const wasteLabel = transaction.listing?.jenis_limbah 
     ? CATEGORY_LABELS[transaction.listing.jenis_limbah as WasteCategory] 
     : 'Sekam Padi (Rice Husk)';
@@ -82,6 +83,24 @@ export default function B2BDocumentationModal({
     window.print();
   };
 
+  const renderLockedCard = (docName: string, desc: string) => (
+    <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-4 max-w-xl mx-auto text-center py-12">
+      <div className="w-16 h-16 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 mx-auto text-2xl">
+        <Lock className="w-8 h-8" />
+      </div>
+      <h3 className="text-lg font-extrabold text-slate-900">{docName} Belum Diterbitkan</h3>
+      <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">{desc}</p>
+      <div className="pt-2">
+        <button
+          onClick={onClose}
+          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs transition-all shadow-md"
+        >
+          Kembali ke Chat Negosiasi untuk Menyetujui Kesepakatan 🤝
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 flex flex-col h-[90vh] overflow-hidden">
@@ -95,8 +114,12 @@ export default function B2BDocumentationModal({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-extrabold text-base md:text-lg">Dokumen & Perjanjian B2B TemuTani</h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  LEGAL & PROCUREMENT
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  isAgreed
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                }`}>
+                  {isAgreed ? 'RESMI DISAHKAN 📜' : 'DRAFT DOKUMEN (NEGOSIASI) 📝'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">No. Ref: {spkNumber} • {gapoktanName} ↔ {buyerName}</p>
@@ -143,7 +166,7 @@ export default function B2BDocumentationModal({
               activeTab === 'surat_jalan' ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-600 hover:bg-slate-200/60'
             }`}
           >
-            <Truck className="w-4 h-4 text-amber-600" /> 3. Surat Jalan
+            <Truck className="w-4 h-4 text-amber-600" /> 3. Surat Jalan {!isAgreed && '🔒'}
           </button>
           <button
             onClick={() => setActiveTab('bast_timbangan')}
@@ -151,7 +174,7 @@ export default function B2BDocumentationModal({
               activeTab === 'bast_timbangan' ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-600 hover:bg-slate-200/60'
             }`}
           >
-            <Scale className="w-4 h-4 text-teal-600" /> 4. BAST & Timbangan
+            <Scale className="w-4 h-4 text-teal-600" /> 4. BAST & Timbangan {!isAgreed && '🔒'}
           </button>
           <button
             onClick={() => setActiveTab('invoice')}
@@ -159,7 +182,7 @@ export default function B2BDocumentationModal({
               activeTab === 'invoice' ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-600 hover:bg-slate-200/60'
             }`}
           >
-            <DollarSign className="w-4 h-4 text-purple-600" /> 5. Invoice
+            <DollarSign className="w-4 h-4 text-purple-600" /> 5. Invoice {!isAgreed && '🔒'}
           </button>
         </div>
 
@@ -169,6 +192,22 @@ export default function B2BDocumentationModal({
           {/* TAB 1: SPK B2B (Surat Perjanjian Kerjasama) */}
           {activeTab === 'spk' && (
             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
+              {!isAgreed ? (
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                  <span className="font-extrabold text-sm">📝</span>
+                  <div>
+                    <strong className="font-extrabold">PRATINJAU DRAFT SPK (TAHAP NEGOSIASI):</strong> Dokumen ini dapat ditinjau untuk menyelaraskan pasal & batas kadar air. Dokumen resmi akan terbit & disahkan otomatis setelah kesepakatan disetujui di ruang chat.
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+                  <span className="font-extrabold text-sm">📜</span>
+                  <div>
+                    <strong className="font-extrabold">DOKUMEN RESMI DISAHKAN:</strong> Surat Perjanjian Kerjasama ini telah sah secara legal dan mengikat kedua belah pihak.
+                  </div>
+                </div>
+              )}
+
               <div className="text-center border-b border-slate-200 pb-4 space-y-1">
                 <h2 className="text-xl font-extrabold text-slate-900 uppercase tracking-wide">Surat Perjanjian Kerjasama (SPK) B2B</h2>
                 <p className="text-xs text-slate-500 font-mono">No. Dokumen: {spkNumber}</p>
@@ -240,6 +279,22 @@ export default function B2BDocumentationModal({
           {/* TAB 2: Purchase Order (PO) */}
           {activeTab === 'po' && (
             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
+              {!isAgreed ? (
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                  <span className="font-extrabold text-sm">📝</span>
+                  <div>
+                    <strong className="font-extrabold">PRATINJAU DRAFT PO:</strong> Purchase Order ini berstatus Draft selama negosiasi. Nomor PO resmi akan diterbitkan setelah kesepakatan disahkan.
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+                  <span className="font-extrabold text-sm">🛒</span>
+                  <div>
+                    <strong className="font-extrabold">PO RESMI DITERBITKAN:</strong> Purchase Order ini sah sebagai bukti pemesanan pasokan bahan baku B2B.
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900">PURCHASE ORDER (PO)</h2>
@@ -306,231 +361,243 @@ export default function B2BDocumentationModal({
 
           {/* TAB 3: Surat Jalan (Delivery Permit) */}
           {activeTab === 'surat_jalan' && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-900">SURAT JALAN & IZIN MASUK ARMADA</h2>
-                  <p className="text-xs text-slate-500 font-mono">No. Surat Jalan: {sjNumber}</p>
-                </div>
-                <div className="bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full text-xs border border-amber-200 flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5" /> SELF-PICKUP VERIFIED
-                </div>
-              </div>
+            !isAgreed 
+              ? renderLockedCard("Surat Jalan Armada", "Surat Jalan Armada Truk baru akan diterbitkan secara otomatis setelah negosiasi disetujui (Status: DISEPAKATI).")
+              : (
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-slate-900">SURAT JALAN & IZIN MASUK ARMADA</h2>
+                      <p className="text-xs text-slate-500 font-mono">No. Surat Jalan: {sjNumber}</p>
+                    </div>
+                    <div className="bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full text-xs border border-amber-200 flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5" /> SELF-PICKUP VERIFIED
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-amber-50/60 p-4 rounded-2xl border border-amber-200 text-xs">
-                <div className="space-y-1">
-                  <span className="font-bold text-amber-900 text-[10px] uppercase">PLAT NOMOR TRUK</span>
-                  <input
-                    type="text"
-                    value={platNomor}
-                    onChange={(e) => setPlatNomor(e.target.value)}
-                    className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="font-bold text-amber-900 text-[10px] uppercase">NAMA PENGEMUDI / DRIVER</span>
-                  <input
-                    type="text"
-                    value={namaDriver}
-                    onChange={(e) => setNamaDriver(e.target.value)}
-                    className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="font-bold text-amber-900 text-[10px] uppercase">NO. HP DRIVER</span>
-                  <input
-                    type="text"
-                    value={noHpDriver}
-                    onChange={(e) => setNoHpDriver(e.target.value)}
-                    className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-amber-50/60 p-4 rounded-2xl border border-amber-200 text-xs">
+                    <div className="space-y-1">
+                      <span className="font-bold text-amber-900 text-[10px] uppercase">PLAT NOMOR TRUK</span>
+                      <input
+                        type="text"
+                        value={platNomor}
+                        onChange={(e) => setPlatNomor(e.target.value)}
+                        className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-bold text-amber-900 text-[10px] uppercase">NAMA PENGEMUDI / DRIVER</span>
+                      <input
+                        type="text"
+                        value={namaDriver}
+                        onChange={(e) => setNamaDriver(e.target.value)}
+                        className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-bold text-amber-900 text-[10px] uppercase">NO. HP DRIVER</span>
+                      <input
+                        type="text"
+                        value={noHpDriver}
+                        onChange={(e) => setNoHpDriver(e.target.value)}
+                        className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 font-extrabold text-slate-900 text-sm"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <span className="font-extrabold text-slate-500 uppercase text-[10px]">ALAMAT LOKASI TITIK JEMPUT (GAPOKTAN):</span>
-                <p className="font-bold text-slate-900 text-sm">{gapoktanName}</p>
-                <p className="text-slate-700">{transaction.listing?.lokasi_pickup || 'Penggilingan Padi Gapoktan Sukamaju, Jl. Raya Karawang No. 45'}</p>
-                <p className="text-emerald-700 font-semibold">Jadwal Tiba Armada: {transaction.jadwal_pickup || 'Setiap Musim Panen (08.00 - 17.00 WIB)'}</p>
-              </div>
+                  <div className="space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span className="font-extrabold text-slate-500 uppercase text-[10px]">ALAMAT LOKASI TITIK JEMPUT (GAPOKTAN):</span>
+                    <p className="font-bold text-slate-900 text-sm">{gapoktanName}</p>
+                    <p className="text-slate-700">{transaction.listing?.lokasi_pickup || 'Penggilingan Padi Gapoktan Sukamaju, Jl. Raya Karawang No. 45'}</p>
+                    <p className="text-emerald-700 font-semibold">Jadwal Tiba Armada: {transaction.jadwal_pickup || 'Setiap Musim Panen (08.00 - 17.00 WIB)'}</p>
+                  </div>
 
-              <div className="p-4 rounded-2xl border border-dashed border-slate-300 flex items-center justify-between text-xs">
-                <div className="space-y-1">
-                  <span className="font-extrabold text-slate-900">Verifikasi Barcode Akses Timbangan</span>
-                  <p className="text-slate-500">Tunjukkan Surat Jalan Digital ini kepada Petugas Timbangan Gapoktan saat memasuki gerbang penggilingan.</p>
+                  <div className="p-4 rounded-2xl border border-dashed border-slate-300 flex items-center justify-between text-xs">
+                    <div className="space-y-1">
+                      <span className="font-extrabold text-slate-900">Verifikasi Barcode Akses Timbangan</span>
+                      <p className="text-slate-500">Tunjukkan Surat Jalan Digital ini kepada Petugas Timbangan Gapoktan saat memasuki gerbang penggilingan.</p>
+                    </div>
+                    <div className="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white font-mono font-bold text-[10px] tracking-tighter">
+                      QR-VERIFIED
+                    </div>
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white font-mono font-bold text-[10px] tracking-tighter">
-                  QR-VERIFIED
-                </div>
-              </div>
-            </div>
+              )
           )}
 
           {/* TAB 4: BAST & Timbangan */}
           {activeTab === 'bast_timbangan' && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-900">BERITA ACARA SERAH TERIMA & SLIP TIMBANGAN</h2>
-                  <p className="text-xs text-slate-500 font-mono">No. BAST: {bastNumber}</p>
+            !isAgreed 
+              ? renderLockedCard("BAST & Slip Timbangan", "Berita Acara Serah Terima & Input Slip Timbangan Netto dapat diisi saat armada tiba di lokasi penggilingan Gapoktan setelah negosiasi disetujui (Status: DISEPAKATI).")
+              : (
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-slate-900">BERITA ACARA SERAH TERIMA & SLIP TIMBANGAN</h2>
+                      <p className="text-xs text-slate-500 font-mono">No. BAST: {bastNumber}</p>
+                    </div>
+                    <div className="bg-teal-100 text-teal-900 font-extrabold px-3 py-1 rounded-full text-xs border border-teal-200">
+                      SLIP TIMBANGAN NETTO VERIFIED
+                    </div>
+                  </div>
+
+                  <div className="bg-teal-50/70 p-5 rounded-2xl border border-teal-200 space-y-4">
+                    <h4 className="font-extrabold text-teal-950 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      <Scale className="w-4 h-4 text-teal-600" /> Input Hasil Timbangan Jembatan (Digital Scale)
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-700">1. Berat Bruto Truk + Limbah (kg)</label>
+                        <input
+                          type="number"
+                          value={beratBruto}
+                          onChange={(e) => setBeratBruto(Number(e.target.value))}
+                          className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-700">2. Berat Tara Truk Kosong (kg)</label>
+                        <input
+                          type="number"
+                          value={beratTara}
+                          onChange={(e) => setBeratTara(Number(e.target.value))}
+                          className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-700">3. Kadar Air Uji Sampel (%)</label>
+                        <input
+                          type="number"
+                          value={kadarAirActual}
+                          onChange={(e) => setKadarAirActual(Number(e.target.value))}
+                          className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
+                      <div className="p-3 bg-white rounded-xl border border-teal-200">
+                        <span className="text-slate-500 font-semibold">Berat Netto Kotor:</span>
+                        <p className="text-base font-extrabold text-slate-900">{beratNetto.toLocaleString('id-ID')} kg</p>
+                      </div>
+                      <div className="p-3 bg-white rounded-xl border border-amber-200">
+                        <span className="text-amber-700 font-semibold">Potongan Kadar Air ({excessMoisturePercent}%):</span>
+                        <p className="text-base font-extrabold text-amber-600">-{potonganKg.toLocaleString('id-ID')} kg</p>
+                      </div>
+                      <div className="p-3 bg-slate-900 text-white rounded-xl">
+                        <span className="text-slate-300 font-semibold">Netto Bersih Diterima:</span>
+                        <p className="text-base font-extrabold text-emerald-400">{beratNettoFinal.toLocaleString('id-ID')} kg</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 text-xs leading-relaxed space-y-1">
+                    <span className="font-bold text-slate-900">Pernyataan Berita Acara Serah Terima (BAST):</span>
+                    <p className="text-slate-600">
+                      Dengan ini Pengurus {gapoktanName} dan Pengemudi Driver {buyerName} mengonfirmasi bahwa penimbangan material {wasteLabel} telah dilaksanakan sesuai angka di atas dalam kondisi baik.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveDocs}
+                    className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Sahkan BAST & Hasil Timbangan Netto
+                  </button>
                 </div>
-                <div className="bg-teal-100 text-teal-900 font-extrabold px-3 py-1 rounded-full text-xs border border-teal-200">
-                  SLIP TIMBANGAN NETTO VERIFIED
-                </div>
-              </div>
-
-              <div className="bg-teal-50/70 p-5 rounded-2xl border border-teal-200 space-y-4">
-                <h4 className="font-extrabold text-teal-950 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <Scale className="w-4 h-4 text-teal-600" /> Input Hasil Timbangan Jembatan (Digital Scale)
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-bold text-slate-700">1. Berat Bruto Truk + Limbah (kg)</label>
-                    <input
-                      type="number"
-                      value={beratBruto}
-                      onChange={(e) => setBeratBruto(Number(e.target.value))}
-                      className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold text-slate-700">2. Berat Tara Truk Kosong (kg)</label>
-                    <input
-                      type="number"
-                      value={beratTara}
-                      onChange={(e) => setBeratTara(Number(e.target.value))}
-                      className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold text-slate-700">3. Kadar Air Uji Sampel (%)</label>
-                    <input
-                      type="number"
-                      value={kadarAirActual}
-                      onChange={(e) => setKadarAirActual(Number(e.target.value))}
-                      className="w-full bg-white border border-teal-300 rounded-xl px-3 py-2 font-extrabold text-slate-900 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
-                  <div className="p-3 bg-white rounded-xl border border-teal-200">
-                    <span className="text-slate-500 font-semibold">Berat Netto Kotor:</span>
-                    <p className="text-base font-extrabold text-slate-900">{beratNetto.toLocaleString('id-ID')} kg</p>
-                  </div>
-                  <div className="p-3 bg-white rounded-xl border border-amber-200">
-                    <span className="text-amber-700 font-semibold">Potongan Kadar Air ({excessMoisturePercent}%):</span>
-                    <p className="text-base font-extrabold text-amber-600">-{potonganKg.toLocaleString('id-ID')} kg</p>
-                  </div>
-                  <div className="p-3 bg-slate-900 text-white rounded-xl">
-                    <span className="text-slate-300 font-semibold">Netto Bersih Diterima:</span>
-                    <p className="text-base font-extrabold text-emerald-400">{beratNettoFinal.toLocaleString('id-ID')} kg</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 text-xs leading-relaxed space-y-1">
-                <span className="font-bold text-slate-900">Pernyataan Berita Acara Serah Terima (BAST):</span>
-                <p className="text-slate-600">
-                  Dengan ini Pengurus {gapoktanName} dan Pengemudi Driver {buyerName} mengonfirmasi bahwa penimbangan material {wasteLabel} telah dilaksanakan sesuai angka di atas dalam kondisi baik.
-                </p>
-              </div>
-
-              <button
-                onClick={handleSaveDocs}
-                className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
-              >
-                <CheckCircle2 className="w-4 h-4" /> Sahkan BAST & Hasil Timbangan Netto
-              </button>
-            </div>
+              )
           )}
 
           {/* TAB 5: Invoice & Tagihan */}
           {activeTab === 'invoice' && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-900">FAKTUR INVOICE TAGIHAN B2B</h2>
-                  <p className="text-xs text-slate-500 font-mono">No. Invoice: {invoiceNumber}</p>
-                </div>
-                <div className="text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border ${
-                    transaction.b2b_docs?.status_pembayaran === 'terbayar'
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                      : 'bg-amber-100 text-amber-900 border-amber-200'
-                  }`}>
-                    {transaction.b2b_docs?.status_pembayaran === 'terbayar' ? 'LUNAS TERBAYAR' : 'MENUNGGU PEMBAYARAN'}
-                  </span>
-                </div>
-              </div>
+            !isAgreed 
+              ? renderLockedCard("Faktur Invoice Tagihan", "Faktur Invoice Tagihan diterbitkan secara otomatis setelah transaksi disepakati (Status: DISEPAKATI) dan penimbangan BAST disahkan.")
+              : (
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6 max-w-3xl mx-auto">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-slate-900">FAKTUR INVOICE TAGIHAN B2B</h2>
+                      <p className="text-xs text-slate-500 font-mono">No. Invoice: {invoiceNumber}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border ${
+                        transaction.b2b_docs?.status_pembayaran === 'terbayar'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : 'bg-amber-100 text-amber-900 border-amber-200'
+                      }`}>
+                        {transaction.b2b_docs?.status_pembayaran === 'terbayar' ? 'LUNAS TERBAYAR' : 'MENUNGGU PEMBAYARAN'}
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <div>
-                  <span className="font-bold text-slate-500 uppercase text-[10px]">REKENING PENERIMA (GAPOKTAN):</span>
-                  <p className="font-extrabold text-slate-900 text-sm">Bank BRI - Gapoktan Sukamaju Karawang</p>
-                  <p className="text-slate-600 font-mono">No. Rek: 0149-01-008492-50-3</p>
-                </div>
-                <div>
-                  <span className="font-bold text-slate-500 uppercase text-[10px]">TAGIHAN DIBAYAR OLEH:</span>
-                  <p className="font-extrabold text-slate-900 text-sm">{buyerName}</p>
-                  <p className="text-slate-600">Jatuh Tempo: 7 Hari Kerja (TOP 7)</p>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div>
+                      <span className="font-bold text-slate-500 uppercase text-[10px]">REKENING PENERIMA (GAPOKTAN):</span>
+                      <p className="font-extrabold text-slate-900 text-sm">Bank BRI - Gapoktan Sukamaju Karawang</p>
+                      <p className="text-slate-600 font-mono">No. Rek: 0149-01-008492-50-3</p>
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-500 uppercase text-[10px]">TAGIHAN DIBAYAR OLEH:</span>
+                      <p className="font-extrabold text-slate-900 text-sm">{buyerName}</p>
+                      <p className="text-slate-600">Jatuh Tempo: 7 Hari Kerja (TOP 7)</p>
+                    </div>
+                  </div>
 
-              {/* Rincian Tagihan */}
-              <div className="border border-slate-200 rounded-2xl overflow-hidden">
-                <table className="w-full text-xs text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-700">
-                      <th className="p-3 font-extrabold">Uraian Tagihan Netto</th>
-                      <th className="p-3 font-extrabold text-right">Netto (Kg)</th>
-                      <th className="p-3 font-extrabold text-right">Harga / Kg</th>
-                      <th className="p-3 font-extrabold text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr>
-                      <td className="p-3 font-bold text-slate-900">
-                        Pasokan {wasteLabel}
-                        <p className="text-[10px] text-slate-500 font-normal">Ref BAST: {bastNumber} (Potongan Kadar Air: {potonganKg} kg)</p>
-                      </td>
-                      <td className="p-3 text-right font-semibold">{beratNettoFinal.toLocaleString('id-ID')} kg</td>
-                      <td className="p-3 text-right font-semibold">Rp {hargaPerKg.toLocaleString('id-ID')}</td>
-                      <td className="p-3 text-right font-extrabold text-slate-900">
-                        Rp {totalBayar.toLocaleString('id-ID')}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                  {/* Rincian Tagihan */}
+                  <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-700">
+                          <th className="p-3 font-extrabold">Uraian Tagihan Netto</th>
+                          <th className="p-3 font-extrabold text-right">Netto (Kg)</th>
+                          <th className="p-3 font-extrabold text-right">Harga / Kg</th>
+                          <th className="p-3 font-extrabold text-right">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr>
+                          <td className="p-3 font-bold text-slate-900">
+                            Pasokan {wasteLabel}
+                            <p className="text-[10px] text-slate-500 font-normal">Ref BAST: {bastNumber} (Potongan Kadar Air: {potonganKg} kg)</p>
+                          </td>
+                          <td className="p-3 text-right font-semibold">{beratNettoFinal.toLocaleString('id-ID')} kg</td>
+                          <td className="p-3 text-right font-semibold">Rp {hargaPerKg.toLocaleString('id-ID')}</td>
+                          <td className="p-3 text-right font-extrabold text-slate-900">
+                            Rp {totalBayar.toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-              <div className="p-5 rounded-2xl bg-slate-900 text-white flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-slate-400 font-semibold">Total Tagihan Final BAST:</span>
-                  <p className="text-2xl font-extrabold text-emerald-400">Rp {totalBayar.toLocaleString('id-ID')}</p>
+                  <div className="p-5 rounded-2xl bg-slate-900 text-white flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-slate-400 font-semibold">Total Tagihan Final BAST:</span>
+                      <p className="text-2xl font-extrabold text-emerald-400">Rp {totalBayar.toLocaleString('id-ID')}</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const updatedTx: WasteTransaction = {
+                          ...transaction,
+                          b2b_docs: {
+                            ...transaction.b2b_docs,
+                            total_bayar_final: totalBayar,
+                            status_pembayaran: 'terbayar'
+                          }
+                        };
+                        onUpdateTransaction(updatedTx);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-md"
+                    >
+                      Konfirmasi Pembayaran Lunas
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  onClick={() => {
-                    const updatedTx: WasteTransaction = {
-                      ...transaction,
-                      b2b_docs: {
-                        ...transaction.b2b_docs,
-                        total_bayar_final: totalBayar,
-                        status_pembayaran: 'terbayar'
-                      }
-                    };
-                    onUpdateTransaction(updatedTx);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-md"
-                >
-                  Konfirmasi Pembayaran Lunas
-                </button>
-              </div>
-            </div>
+              )
           )}
 
         </div>

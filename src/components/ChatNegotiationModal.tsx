@@ -267,9 +267,16 @@ export default function ChatNegotiationModal({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowDocsModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold hover:bg-blue-500/30 transition-all"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
+                ['disepakati', 'dijadwalkan', 'selesai'].includes(transaction.status)
+                  ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-300 hover:bg-emerald-500/30'
+                  : 'bg-amber-500/20 border-amber-400/30 text-amber-300 hover:bg-amber-500/30'
+              }`}
             >
-              <FileText className="w-3.5 h-3.5" /> Dokumen B2B & SPK
+              <FileText className="w-3.5 h-3.5" />
+              {['disepakati', 'dijadwalkan', 'selesai'].includes(transaction.status)
+                ? 'Dokumen B2B Resmi 📜'
+                : 'Pratinjau Draft SPK 📝'}
             </button>
             <button
               onClick={handleRequestAiAdvice}
