@@ -19,112 +19,94 @@ interface KBDetail {
 
 const KB_DATA: KBDetail[] = [
   {
-    jenis_limbah: 'ampas_kopi',
-    kategori_pemanfaatan: 'Biofertilizer Organik Padat',
-    estimasi_nilai_min: 1800,
+    jenis_limbah: 'sekam_padi',
+    kategori_pemanfaatan: 'Media Tanam Arang Sekam & Biofertilizer',
+    estimasi_nilai_min: 1500,
     estimasi_nilai_max: 2200,
     skor_prioritas: 98,
-    alasan_ilmiah: 'Kandungan Nitrogen (N) tinggi ~2.28%, Phosphor (P) 0.06%, Kalium (K) 0.6%, serta rasio C/N yang seimbang. Sangat diminati produsen pupuk hayati.',
-    rekomendasi_sektor: 'Pabrik Biofertilizer & Pupuk Hayati'
-  },
-  {
-    jenis_limbah: 'ampas_kopi',
-    kategori_pemanfaatan: 'Substrat Media Tanam Jamur Tiram',
-    estimasi_nilai_min: 1200,
-    estimasi_nilai_max: 1600,
-    skor_prioritas: 85,
-    alasan_ilmiah: 'Struktur mikro pori ampas kopi mampu menahan kelembaban dan mempercepat pertumbuhan miselium jamur tiram & jamur kayu.',
-    rekomendasi_sektor: 'Pembudidaya Jamur'
-  },
-  {
-    jenis_limbah: 'ampas_kopi',
-    kategori_pemanfaatan: 'Briket Energi Biomassa',
-    estimasi_nilai_min: 600,
-    estimasi_nilai_max: 900,
-    skor_prioritas: 72,
-    alasan_ilmiah: 'Kadar minyak atsiri tersisa memberikan nilai kalor tinggi (~5.000 kcal/kg). Namun secara sirkularitas ekonomi pertanian, opsi pupuk lebih direkomendasikan.',
-    rekomendasi_sektor: 'Produsen Biomassa & Briket'
+    alasan_ilmiah: 'Kandungan silika alami (SiO2 >80%) tinggi dan porositas sangat baik untuk memelihara aerasi akar & mikroba menguntungkan tanah.',
+    rekomendasi_sektor: 'Produsen Media Tanam & Biofertilizer'
   },
   {
     jenis_limbah: 'sekam_padi',
-    kategori_pemanfaatan: 'Biochar & Media Tanam Aerasi',
-    estimasi_nilai_min: 1500,
-    estimasi_nilai_max: 2000,
-    skor_prioritas: 94,
-    alasan_ilmiah: 'Silika alami tinggi (>80%) dan retensi udara sangat baik. Mengurangi kebadatan tanah dan mencegah pembusukan akar.',
-    rekomendasi_sektor: 'Petani Holtikultura & Pembibitan'
-  },
-  {
-    jenis_limbah: 'sekam_padi',
-    kategori_pemanfaatan: 'Bahan Bakar Burner Biomassa',
+    kategori_pemanfaatan: 'Bahan Bakar Biomassa Burner Pengeringan',
     estimasi_nilai_min: 700,
     estimasi_nilai_max: 1100,
-    skor_prioritas: 80,
-    alasan_ilmiah: 'Nilai bakar pembakaran lambat yang stabil untuk pengeringan jagung, kopi, dan padi skala industri.',
-    rekomendasi_sektor: 'Pengeringan Agribisnis'
+    skor_prioritas: 82,
+    alasan_ilmiah: 'Nilai kalor stabil (~4.200 kcal/kg) sangat efisien sebagai bahan bakar pembakaran burner pengering gabah & komoditas panen.',
+    rekomendasi_sektor: 'Pabrik Biomassa & Burner Pengeringan'
   },
   {
-    jenis_limbah: 'kulit_buah_sayur',
-    kategori_pemanfaatan: 'Eco-Enzyme & Bio-Aktivator POC',
-    estimasi_nilai_min: 1500,
-    estimasi_nilai_max: 2100,
-    skor_prioritas: 96,
-    alasan_ilmiah: 'Tinggi kandungan asam organik, enzim protease, dan mikroba menguntungkan untuk cairan fermentasi penyubur tanah.',
-    rekomendasi_sektor: 'Produsen Bio-Enzyme'
-  },
-  {
-    jenis_limbah: 'kulit_buah_sayur',
-    kategori_pemanfaatan: 'Pupuk Kompos Organik',
-    estimasi_nilai_min: 1000,
-    estimasi_nilai_max: 1400,
-    skor_prioritas: 86,
-    alasan_ilmiah: 'Mempercepat pengomposan bahan cokelat (daun kering/sekam) dengan suplai kelembaban & mikroorganisme pelapuk.',
-    rekomendasi_sektor: 'Produsen Kompos'
-  },
-  {
-    jenis_limbah: 'kulit_buah_sayur',
-    kategori_pemanfaatan: 'Pakan Silase Ternak Ruminansia',
-    estimasi_nilai_min: 800,
-    estimasi_nilai_max: 1200,
-    skor_prioritas: 78,
-    alasan_ilmiah: 'Dapat difermentasi menjadi pakan suplemen tinggi nutrisi untuk sapi dan kambing.',
-    rekomendasi_sektor: 'Peternakan Ruminansia'
-  },
-  {
-    jenis_limbah: 'serbuk_kayu',
-    kategori_pemanfaatan: 'Substrat Utama Media Tanam Jamur Tiram',
-    estimasi_nilai_min: 1400,
-    estimasi_nilai_max: 1900,
-    skor_prioritas: 95,
-    alasan_ilmiah: 'Sumber selulosa & lignin utama yang paling dibutuhkan sporokarp jamur tiram putih.',
-    rekomendasi_sektor: 'Petani Jamur Tiram'
-  },
-  {
-    jenis_limbah: 'serbuk_kayu',
-    kategori_pemanfaatan: 'Mulsa Pelindung Lahan Pertanian',
-    estimasi_nilai_min: 900,
-    estimasi_nilai_max: 1300,
-    skor_prioritas: 81,
-    alasan_ilmiah: 'Mencegah penguapan air tanah dan menekan pertumbuhan gulma pembendung nutrisi.',
-    rekomendasi_sektor: 'Perkebunan & Pertanian'
-  },
-  {
-    jenis_limbah: 'sisa_makanan',
-    kategori_pemanfaatan: 'Pakan Maggot BSF (Black Soldier Fly)',
+    jenis_limbah: 'jerami_padi',
+    kategori_pemanfaatan: 'Substrat Utama Media Tanam Jamur Merang & Tiram',
     estimasi_nilai_min: 1200,
-    estimasi_nilai_max: 1700,
-    skor_prioritas: 97,
-    alasan_ilmiah: 'Kaya protein padat & lemak yang dapat mengkonversi sisa makanan menjadi biomasa larva maggot BSF tinggi protein untuk pakan ikan & unggas.',
-    rekomendasi_sektor: 'Pembudidaya Maggot BSF'
+    estimasi_nilai_max: 1800,
+    skor_prioritas: 96,
+    alasan_ilmiah: 'Kandungan selulosa dan hemi-selulosa ideal yang mudah diuraikan oleh miselium jamur merang & tiram.',
+    rekomendasi_sektor: 'Pembudidaya Jamur Merang & Tiram'
   },
   {
-    jenis_limbah: 'sisa_makanan',
-    kategori_pemanfaatan: 'Kompos Anaerobik',
+    jenis_limbah: 'jerami_padi',
+    kategori_pemanfaatan: 'Pakan Fermentasi Silase Ternak Ruminansia',
+    estimasi_nilai_min: 1000,
+    estimasi_nilai_max: 1500,
+    skor_prioritas: 90,
+    alasan_ilmiah: 'Serat kasar tinggi yang dapat difermentasi dengan starter probiotik menjadi pakan pengganti rumput saat musim kering.',
+    rekomendasi_sektor: 'Peternak Sapi & Kerbau'
+  },
+  {
+    jenis_limbah: 'limbah_jagung',
+    kategori_pemanfaatan: 'Pakan Silase Batang & Tongkol Jagung',
+    estimasi_nilai_min: 1100,
+    estimasi_nilai_max: 1600,
+    skor_prioritas: 94,
+    alasan_ilmiah: 'Tongkol dan batang jagung memiliki energi tercerna tinggi (TDN ~60%) setelah diolah giling dan silase.',
+    rekomendasi_sektor: 'Peternakan & Industri Pakan'
+  },
+  {
+    jenis_limbah: 'limbah_jagung',
+    kategori_pemanfaatan: 'Briket Energi Biomassa Padat',
     estimasi_nilai_min: 800,
-    estimasi_nilai_max: 1200,
-    skor_prioritas: 83,
-    alasan_ilmiah: 'Bahan organik padat unsur hara untuk komposting fermentasi tertutup.',
-    rekomendasi_sektor: 'Pengolahan Kompos Organik'
+    estimasi_nilai_max: 1300,
+    skor_prioritas: 85,
+    alasan_ilmiah: 'Tongkol jagung memiliki densitas dan nilai kalor tinggi (~4.500 kcal/kg) untuk briket industri.',
+    rekomendasi_sektor: 'Produsen Briket Biomassa'
+  },
+  {
+    jenis_limbah: 'sabut_kelapa',
+    kategori_pemanfaatan: 'Cocopeat Substrat Media Tanam & Hidroponik',
+    estimasi_nilai_min: 1800,
+    estimasi_nilai_max: 2500,
+    skor_prioritas: 97,
+    alasan_ilmiah: 'Kapasitas menahan air sangat tinggi (hingga 8x beratnya) dan ramah lingkungan sebagai pengganti peat moss.',
+    rekomendasi_sektor: 'Produsen Media Tanam & Pembibitan'
+  },
+  {
+    jenis_limbah: 'sabut_kelapa',
+    kategori_pemanfaatan: 'Cocofiber Serat Industri & Jok',
+    estimasi_nilai_min: 2000,
+    estimasi_nilai_max: 3000,
+    skor_prioritas: 88,
+    alasan_ilmiah: 'Serat kelapa yang kuat, elastis, dan tahan air laut diminati industri jok, matras, dan geotekstil.',
+    rekomendasi_sektor: 'Industri Pengolahan Serat Sabut'
+  },
+  {
+    jenis_limbah: 'jerami_kedelai',
+    kategori_pemanfaatan: 'Pakan Konsentrat Tinggi Protein Ternak',
+    estimasi_nilai_min: 1400,
+    estimasi_nilai_max: 2000,
+    skor_prioritas: 95,
+    alasan_ilmiah: 'Kandungan protein kasar (PK ~12-15%) jauh lebih tinggi dibanding jerami padi, sangat disukai ternak kambing/domba.',
+    rekomendasi_sektor: 'Peternak Kambing & Domba'
+  },
+  {
+    jenis_limbah: 'jerami_kedelai',
+    kategori_pemanfaatan: 'Pupuk Kompos Nitrogen Organik',
+    estimasi_nilai_min: 1100,
+    estimasi_nilai_max: 1600,
+    skor_prioritas: 86,
+    alasan_ilmiah: 'Sebagai leguminosa, jerami kedelai kaya akan fiksasi nitrogen alami untuk mempercepat pembentukan humus tanah.',
+    rekomendasi_sektor: 'Produsen Kompos Organik'
   }
 ];
 

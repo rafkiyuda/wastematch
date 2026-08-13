@@ -5,11 +5,12 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
 import { Plus, Store, Scale, MapPin, Calendar, Sparkles, Trash2, Edit3, CheckCircle2, TrendingUp, AlertTriangle, ShieldCheck, RefreshCw, DollarSign, MessageSquare, Check, X, Layers, Inbox } from 'lucide-react';
-import { WasteListing, CATEGORY_LABELS, WasteCategory, MatchRecommendation, WasteTransaction } from '@/lib/types';
+import ChatNegotiationModal from '@/components/ChatNegotiationModal';
+import { WasteListing, CATEGORY_LABELS, WasteCategory, MatchRecommendation, WasteTransaction, UserProfile } from '@/lib/types';
 import { db } from '@/lib/db';
 
 export default function GeneratorDashboard() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<WasteListing[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<WasteTransaction[]>([]);
   const [activeTab, setActiveTab] = useState<'offers' | 'listings' | 'ai_match'>('offers');
@@ -19,46 +20,58 @@ export default function GeneratorDashboard() {
   const [aiRecommendations, setAiRecommendations] = useState<MatchRecommendation[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
+  // Chat modal state
+  const [selectedTxForChat, setSelectedTxForChat] = useState<WasteTransaction | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Select AI Buyer Modal states
+  const [showSelectBuyerModal, setShowSelectBuyerModal] = useState(false);
+  const [selectedAiBuyer, setSelectedAiBuyer] = useState<MatchRecommendation | null>(null);
+  const [txOfferKg, setTxOfferKg] = useState<number>(2000);
+  const [txOfferPrice, setTxOfferPrice] = useState<number>(2000);
+  const [txOfferNotes, setTxOfferNotes] = useState<string>('');
+  const [txOfferSchedule, setTxOfferSchedule] = useState<string>('Sabtu Jam 09.00 WIB (Self-Pickup)');
+
   // Form State
-  const [jenisLimbah, setJenisLimbah] = useState<WasteCategory>('ampas_kopi');
-  const [jumlahKg, setJumlahKg] = useState<number>(100);
+  const [jenisLimbah, setJenisLimbah] = useState<WasteCategory>('sekam_padi');
+  const [jumlahKg, setJumlahKg] = useState<number>(1500);
   const [lokasiPickup, setLokasiPickup] = useState('');
-  const [jadwalTersedia, setJadwalTersedia] = useState('Setiap Hari Kerja (09.00 - 17.00 WIB)');
+  const [jadwalTersedia, setJadwalTersedia] = useState('Setiap Musim Panen (08.00 - 17.00 WIB)');
 
   useEffect(() => {
-    const stored = localStorage.getItem('wastematch_user');
+    const stored = localStorage.getItem('temutani_user') || localStorage.getItem('wastematch_user');
     if (stored) {
       const u = JSON.parse(stored);
       setUser(u);
-      setLokasiPickup(u.alamat || 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan');
+      setLokasiPickup(u.alamat || 'Desa Sukamaju, Kec. Rawamerta, Karawang');
     }
 
-    // Default Seed Listings for Generator Demo
+    // Default Seed Listings for Gapoktan Generator Demo
     const initialListings: WasteListing[] = [
       {
         id: 'lst-gen-1',
         generator_id: 'gen-demo-1',
-        jenis_limbah: 'ampas_kopi',
-        jumlah_kg: 500,
-        lokasi_pickup: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-        jadwal_tersedia: 'Setiap Hari Kerja (09.00 - 17.00 WIB)',
+        jenis_limbah: 'sekam_padi',
+        jumlah_kg: 2000,
+        lokasi_pickup: 'Penggilingan Padi Gapoktan Sukamaju, Karawang',
+        jadwal_tersedia: 'Setiap Musim Panen (08.00 - 17.00 WIB)',
         status: 'aktif',
         created_at: new Date().toISOString()
       },
       {
         id: 'lst-gen-2',
         generator_id: 'gen-demo-1',
-        jenis_limbah: 'kulit_buah_sayur',
-        jumlah_kg: 250,
-        lokasi_pickup: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-        jadwal_tersedia: 'Setiap Sore Jam 16.00 WIB',
+        jenis_limbah: 'jerami_padi',
+        jumlah_kg: 3500,
+        lokasi_pickup: 'Lahan Sawah Anggota Gapoktan Sukamaju, Karawang',
+        jadwal_tersedia: 'Pasca Panen Raya (07.00 - 16.00 WIB)',
         status: 'aktif',
         created_at: new Date(Date.now() - 86400000).toISOString()
       }
     ];
 
     // Seed Incoming Offers
-    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
+    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('temutani_transactions') || localStorage.getItem('wastematch_transactions') || '[]');
     const defaultIncomingOffers: WasteTransaction[] = [
       {
         id: 'tx-seed-1',
@@ -67,19 +80,19 @@ export default function GeneratorDashboard() {
         generator_id: 'gen-demo-1',
         status: 'penawaran_diajukan',
         harga_penawaran_per_kg: 2000,
-        jumlah_kg_diminta: 500,
-        catatan_penawaran: 'Halo Kopi Kencana, kami ingin membeli seluruh pasokan 500kg ampas kopi ini untuk bahan dasar biofertilizer pabrik kami di Bogor.',
-        jadwal_pickup: 'Besok Jam 10.00 WIB',
+        jumlah_kg_diminta: 2000,
+        catatan_penawaran: 'Halo Pengurus Gapoktan Sukamaju, kami dari PT Suburtani Agro Media bermaksud membeli seluruh pasokan 2 ton sekam padi ini untuk bahan baku pembuatan media tanam arang sekam.',
+        jadwal_pickup: 'Sabtu Jam 09.00 WIB (Truk Engkel Self-Pickup)',
         konfirmasi_generator: false,
         konfirmasi_buyer: true,
         created_at: new Date().toISOString(),
         buyer: {
           id: 'buy-demo-1',
-          nama: 'PT Suburtani Makmur Biofertilizer',
-          email: 'buyer@demo.com',
+          nama: 'PT Suburtani Agro Media',
+          email: 'suburtani@agromedia.id',
           role: 'buyer',
-          jenis_usaha: 'Produsen Biofertilizer & Pupuk Organik',
-          alamat: 'Kawasan Agribisnis, Bogor'
+          jenis_usaha: 'Produsen Media Tanam & Biofertilizer',
+          alamat: 'Kawasan Agribisnis Karawang'
         }
       }
     ];
@@ -149,6 +162,13 @@ export default function GeneratorDashboard() {
     localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
   };
 
+  const handleUpdateTxFromChat = (updatedTx: WasteTransaction) => {
+    const updated = incomingOffers.map(tx => tx.id === updatedTx.id ? updatedTx : tx);
+    setIncomingOffers(updated);
+    setSelectedTxForChat(updatedTx);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
+  };
+
   // Run AI Matching Engine
   const handleRunAiMatch = async (listing: WasteListing) => {
     setSelectedListingForAi(listing);
@@ -175,17 +195,17 @@ export default function GeneratorDashboard() {
           listing_id: listing.id,
           buyer_id: 'buy-1',
           ranking: 1,
-          kategori_pemanfaatan: listing.jenis_limbah === 'ampas_kopi' ? 'Biofertilizer Organik' : 'Eco-Enzyme Organik',
-          skor: 96,
-          alasan_teks: `🥇 Biofertilizer adalah pemanfaatan bernilai ekonomi tertinggi untuk ${CATEGORY_LABELS[listing.jenis_limbah] || listing.jenis_limbah}. Buyer "PT Subur Tani Biofertilizer" memiliki demand aktif 200kg/minggu dengan tawaran harga Rp 2.000/kg (jarak 3.2km dari lokasi Anda).`,
+          kategori_pemanfaatan: listing.jenis_limbah === 'sekam_padi' ? 'Media Tanam Arang Sekam & Biofertilizer' : 'Pakan Fermentasi Silase Ternak',
+          skor: 94,
+          alasan_teks: `🥇 Pemanfaatan bernilai ekonomi tertinggi untuk ${CATEGORY_LABELS[listing.jenis_limbah] || listing.jenis_limbah}. Buyer "PT Suburtani Agro Media" memiliki demand aktif 1,5 ton/minggu dengan tawaran harga Rp 2.000/kg (jarak 8km dari lokasi Gapoktan).`,
           generated_at: new Date().toISOString(),
           buyer: {
             id: 'buy-1',
-            nama: 'PT Suburtani Makmur Biofertilizer',
-            email: 'suburtani@bio.id',
+            nama: 'PT Suburtani Agro Media',
+            email: 'suburtani@agromedia.id',
             role: 'buyer',
-            jenis_usaha: 'Produsen Biofertilizer & Pupuk Hayati',
-            alamat: 'Kawasan Industri Agribisnis, Bogor'
+            jenis_usaha: 'Produsen Media Tanam & Biofertilizer',
+            alamat: 'Kawasan Agribisnis Karawang'
           }
         },
         {
@@ -193,9 +213,9 @@ export default function GeneratorDashboard() {
           listing_id: listing.id,
           buyer_id: 'buy-2',
           ranking: 2,
-          kategori_pemanfaatan: listing.jenis_limbah === 'ampas_kopi' ? 'Media Tanam Jamur Tiram' : 'Pupuk Kompos',
-          skor: 84,
-          alasan_teks: `🥈 Pembudidaya "Jamur Makmur Sejahtera" membutuhkan media tanam ampas kopi. Cocok & lokasi sangat dekat (1.5km), namun kapasitas serap terbatas (50kg/minggu) sehingga sisa material belum terjual habis dalam 1 transaksi.`,
+          kategori_pemanfaatan: listing.jenis_limbah === 'sekam_padi' ? 'Media Tanam Jamur Merang' : 'Briket Energi Biomassa',
+          skor: 82,
+          alasan_teks: `🥈 Pembudidaya Jamur Merang Makmur membutuhkan material ${CATEGORY_LABELS[listing.jenis_limbah] || listing.jenis_limbah}. Lokasi dekat (4.5km) dengan demand 800kg/minggu.`,
           generated_at: new Date().toISOString(),
           buyer: {
             id: 'buy-2',
@@ -210,6 +230,90 @@ export default function GeneratorDashboard() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const handleOpenSelectBuyerModal = (rec: MatchRecommendation) => {
+    setSelectedAiBuyer(rec);
+    setTxOfferKg(selectedListingForAi?.jumlah_kg || 2000);
+    setTxOfferPrice(2000);
+    setTxOfferSchedule(selectedListingForAi?.jadwal_tersedia || 'Setiap Musim Panen (08.00 - 17.00 WIB)');
+    setTxOfferNotes(`Halo ${rec.buyer?.nama}, Gapoktan kami menyetujui rekomendasi AI TemuTani untuk merealisasikan transaksi pasokan ${selectedListingForAi?.jenis_limbah ? CATEGORY_LABELS[selectedListingForAi.jenis_limbah] : 'sekam padi'}.`);
+    setShowSelectBuyerModal(true);
+  };
+
+  const handleConfirmInitiateTransaction = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAiBuyer) return;
+
+    const newTx: WasteTransaction = {
+      id: `tx-ai-${Date.now()}`,
+      listing_id: selectedListingForAi?.id || 'lst-gen-1',
+      buyer_id: selectedAiBuyer.buyer_id,
+      generator_id: user?.id || 'gen-demo-1',
+      status: 'penawaran_diajukan',
+      harga_penawaran_per_kg: Number(txOfferPrice),
+      jumlah_kg_diminta: Number(txOfferKg),
+      catatan_penawaran: txOfferNotes,
+      jadwal_pickup: txOfferSchedule,
+      konfirmasi_generator: true,
+      konfirmasi_buyer: false,
+      created_at: new Date().toISOString(),
+      listing: selectedListingForAi || {
+        id: 'lst-gen-1',
+        generator_id: user?.id || 'gen-demo-1',
+        jenis_limbah: 'sekam_padi',
+        jumlah_kg: Number(txOfferKg),
+        lokasi_pickup: lokasiPickup || 'Karawang, Jawa Barat',
+        jadwal_tersedia: txOfferSchedule,
+        status: 'aktif',
+        created_at: new Date().toISOString()
+      },
+      buyer: selectedAiBuyer.buyer,
+      generator: user || {
+        id: 'gen-demo-1',
+        nama: 'Pengurus Gapoktan Sukamaju',
+        email: 'gapoktan@sukamaju.id',
+        role: 'generator',
+        jenis_usaha: 'Gabungan Kelompok Tani Padi'
+      },
+      messages: [
+        {
+          id: `msg-init-1`,
+          sender_id: 'system',
+          sender_name: 'Sistem TemuTani',
+          sender_role: 'system',
+          text: `🎉 Transaksi resmi diinisiasi berdasarkan AI Recommendation Engine untuk ${selectedAiBuyer.buyer?.nama}. Nilai Kesepakatan Awal: Rp ${(Number(txOfferPrice) * Number(txOfferKg)).toLocaleString('id-ID')}.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        },
+        {
+          id: `msg-init-2`,
+          sender_id: user?.id || 'gen-demo-1',
+          sender_name: user?.nama_gapoktan || user?.nama || 'Pengurus Gapoktan Sukamaju',
+          sender_role: 'generator',
+          text: txOfferNotes,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          offer_proposal: {
+            harga_per_kg: Number(txOfferPrice),
+            jumlah_kg: Number(txOfferKg),
+            jadwal_pickup: txOfferSchedule,
+            status: 'pending'
+          }
+        }
+      ]
+    };
+
+    const updatedOffers = [newTx, ...incomingOffers];
+    setIncomingOffers(updatedOffers);
+    localStorage.setItem('temutani_transactions', JSON.stringify(updatedOffers));
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updatedOffers));
+
+    setShowSelectBuyerModal(false);
+    setSelectedAiBuyer(null);
+    
+    // Switch to active offers tab and immediately open negotiation chat
+    setActiveTab('offers');
+    setSelectedTxForChat(newTx);
+    setIsChatOpen(true);
   };
 
   const pendingOffersCount = incomingOffers.filter(tx => tx.status === 'penawaran_diajukan').length;
@@ -227,10 +331,10 @@ export default function GeneratorDashboard() {
               <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-extrabold uppercase tracking-wider">
                 Generator Dashboard
               </span>
-              <span className="text-xs text-slate-500 font-medium">• Coffee Shop / Restoran</span>
+              <span className="text-xs text-slate-500 font-medium">• Kelompok Tani / Gapoktan</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-              {user?.nama || 'Kopi Kencana Espresso & Roastery'}
+              {user?.nama_gapoktan || user?.nama || 'Gapoktan Sukamaju Karawang'}
             </h1>
             <p className="text-xs md:text-sm text-slate-600 font-medium flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-emerald-600 shrink-0" /> {lokasiPickup}
@@ -354,26 +458,34 @@ export default function GeneratorDashboard() {
                       <span>Usulan Pickup: <strong>{tx.jadwal_pickup || 'Sesuai kesepakatan'}</strong></span>
                     </div>
 
-                    {tx.status === 'penawaran_diajukan' ? (
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          onClick={() => handleDeclineOffer(tx.id)}
-                          className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
-                        >
-                          Tolak
-                        </button>
-                        <button
-                          onClick={() => handleAcceptOffer(tx.id)}
-                          className="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1"
-                        >
-                          <Check className="w-4 h-4" /> Setujui Penawaran
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Penawaran Disetujui! Menunggu Penjadwalan Pickup Buyer.
-                      </div>
-                    )}
+                    <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedTxForChat(tx);
+                          setIsChatOpen(true);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Buka Chat & Negosiasi 💬
+                      </button>
+
+                      {tx.status === 'penawaran_diajukan' && (
+                        <div className="flex gap-2 w-full">
+                          <button
+                            onClick={() => handleDeclineOffer(tx.id)}
+                            className="w-1/2 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
+                          >
+                            Tolak
+                          </button>
+                          <button
+                            onClick={() => handleAcceptOffer(tx.id)}
+                            className="w-1/2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1"
+                          >
+                            <Check className="w-4 h-4" /> Setujui
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -513,10 +625,10 @@ export default function GeneratorDashboard() {
                     <div className="flex items-center justify-between pt-2 text-xs">
                       <span className="text-slate-500 font-medium">{rec.buyer?.alamat}</span>
                       <button
-                        onClick={() => alert(`Pengajuan minat transaksi dikirimkan ke ${rec.buyer?.nama}. Penjadwalan pickup akan diaktifkan setelah konfirmasi!`)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-sm"
+                        onClick={() => handleOpenSelectBuyerModal(rec)}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-sm flex items-center gap-1.5"
                       >
-                        Pilih Buyer Ini & Transaksi
+                        <Sparkles className="w-4 h-4" /> Pilih Buyer Ini & Transaksi
                       </button>
                     </div>
                   </div>
@@ -539,20 +651,20 @@ export default function GeneratorDashboard() {
 
               <form onSubmit={handleAddListing} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Jenis Limbah Organik (Kategori Tertutup Fase 1)</label>
+                  <label className="text-xs font-bold text-slate-700">Jenis Limbah Pertanian (Fase 1 - 5 Komoditas)</label>
                   <select
                     value={jenisLimbah}
                     onChange={(e) => setJenisLimbah(e.target.value as WasteCategory)}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
                   >
-                    <option value="ampas_kopi">Ampas Kopi (Coffee Grounds)</option>
                     <option value="sekam_padi">Sekam Padi (Rice Husk)</option>
-                    <option value="kulit_buah_sayur">Kulit Buah & Sayur</option>
-                    <option value="serbuk_kayu">Serbuk Kayu / Gergaji</option>
-                    <option value="sisa_makanan">Sisa Makanan (Katering/Restoran)</option>
+                    <option value="jerami_padi">Jerami Padi (Rice Straw)</option>
+                    <option value="limbah_jagung">Limbah Jagung (Tongkol & Batang)</option>
+                    <option value="sabut_kelapa">Sabut Kelapa (Coconut Coir)</option>
+                    <option value="jerami_kedelai">Jerami Kedelai (Soybean Straw)</option>
                   </select>
                   <span className="text-[11px] text-amber-700 font-medium flex items-center gap-1 pt-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Dibatalkan otomatis untuk limbah B3 & minyak jelantah.
+                    <ShieldCheck className="w-3.5 h-3.5" /> Dibatasi khusus 5 limbah pertanian non-B3 dari agregasi Gapoktan.
                   </span>
                 </div>
 
@@ -608,6 +720,124 @@ export default function GeneratorDashboard() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Modal Konfirmasi Inisiasi Transaksi AI Buyer */}
+        {showSelectBuyerModal && selectedAiBuyer && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-xl p-6 rounded-3xl border border-emerald-200 shadow-2xl space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">Konfirmasi Inisiasi Transaksi AI</h3>
+                </div>
+                <button onClick={() => setShowSelectBuyerModal(false)} className="text-slate-400 hover:text-slate-700">✕</button>
+              </div>
+
+              <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Rank #{selectedAiBuyer.ranking} — {selectedAiBuyer.kategori_pemanfaatan}
+                  </span>
+                  <span className="text-xs font-extrabold text-amber-600">Skor AI: {selectedAiBuyer.skor}%</span>
+                </div>
+                <h4 className="text-base font-extrabold text-slate-900">{selectedAiBuyer.buyer?.nama}</h4>
+                <p className="text-xs text-slate-600 font-medium">{selectedAiBuyer.buyer?.jenis_usaha} • {selectedAiBuyer.buyer?.alamat}</p>
+              </div>
+
+              <form onSubmit={handleConfirmInitiateTransaction} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Jumlah Volume Limbah (kg)</label>
+                    <input
+                      type="number"
+                      min="10"
+                      value={txOfferKg}
+                      onChange={(e) => setTxOfferKg(Number(e.target.value))}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Tawaran Harga (Rp / kg)</label>
+                    <input
+                      type="number"
+                      min="100"
+                      value={txOfferPrice}
+                      onChange={(e) => setTxOfferPrice(Number(e.target.value))}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900 text-white flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-300">Estimasi Total Pendapatan Gapoktan:</span>
+                  <span className="text-lg font-extrabold text-emerald-400">
+                    Rp {(Number(txOfferKg) * Number(txOfferPrice)).toLocaleString('id-ID')}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Jadwal Self-Pickup Gapoktan</label>
+                  <input
+                    type="text"
+                    value={txOfferSchedule}
+                    onChange={(e) => setTxOfferSchedule(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Catatan Pesan Awal ke Buyer</label>
+                  <textarea
+                    rows={2}
+                    value={txOfferNotes}
+                    onChange={(e) => setTxOfferNotes(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-900 focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowSelectBuyerModal(false)}
+                    className="w-1/2 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-1/2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles className="w-4 h-4" /> Buka Ruang Negosiasi Chat
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Chat & Negotiation Modal */}
+        {selectedTxForChat && (
+          <ChatNegotiationModal
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            transaction={selectedTxForChat}
+            currentUser={user || {
+              id: 'gen-demo-1',
+              nama: 'Pengurus Gapoktan Sukamaju',
+              email: 'gapoktan@sukamaju.id',
+              role: 'generator',
+              jenis_usaha: 'Gabungan Kelompok Tani Padi'
+            }}
+            onUpdateTransaction={handleUpdateTxFromChat}
+          />
         )}
       </main>
 

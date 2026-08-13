@@ -6,14 +6,16 @@ import { WasteListing, MatchRecommendation } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  let listing: WasteListing | undefined;
   try {
-    const { listing } = await req.json() as { listing: WasteListing };
+    const body = await req.json() as { listing: WasteListing };
+    listing = body?.listing;
 
     if (!listing || !listing.jenis_limbah) {
       return NextResponse.json({ error: 'Listing data invalid' }, { status: 400 });
     }
 
-    // Layer 1: Knowledge Base Lookup
+    // Layer 1: Agricultural Knowledge Base Lookup
     let kbRows: any[] = [];
     try {
       const { data } = await supabaseAdmin
@@ -29,24 +31,31 @@ export async function POST(req: Request) {
       kbRows = [
         {
           jenis_limbah: listing.jenis_limbah,
-          kategori_pemanfaatan: 'biofertilizer',
-          estimasi_nilai_per_kg_min: 1800,
+          kategori_pemanfaatan: 'media_tanam_arang_sekam',
+          estimasi_nilai_per_kg_min: 1500,
           estimasi_nilai_per_kg_max: 2200,
-          catatan: 'Kandungan nitrogen (N) tinggi ~2.2%, sangat ideal untuk racikan biofertilizer organik.'
+          catatan: 'Diolah jadi arang sekam / media tanam bernilai ekonomi tinggi untuk hidroponik & bibit tanaman.'
         },
         {
           jenis_limbah: listing.jenis_limbah,
           kategori_pemanfaatan: 'media_tanam_jamur',
           estimasi_nilai_per_kg_min: 1200,
-          estimasi_nilai_per_kg_max: 1600,
-          catatan: 'Struktur mikro pori ramah untuk pertumbuhan miselium jamur tiram.'
+          estimasi_nilai_per_kg_max: 1800,
+          catatan: 'Bahan baku utama media tanam jamur merang & tiram dengan daya serap miselium optimal.'
         },
         {
           jenis_limbah: listing.jenis_limbah,
-          kategori_pemanfaatan: 'biomassa',
-          estimasi_nilai_per_kg_min: 600,
-          estimasi_nilai_per_kg_max: 900,
-          catatan: 'Nilai kalor ~5000 kcal/kg cocok untuk briket energi.'
+          kategori_pemanfaatan: 'pakan_ternak',
+          estimasi_nilai_per_kg_min: 1000,
+          estimasi_nilai_per_kg_max: 1500,
+          catatan: 'Serat mentah ideal untuk pakan fermentasi (silase) ternak sapi/kerbau saat musim kering.'
+        },
+        {
+          jenis_limbah: listing.jenis_limbah,
+          kategori_pemanfaatan: 'biomassa_briket',
+          estimasi_nilai_per_kg_min: 700,
+          estimasi_nilai_per_kg_max: 1100,
+          catatan: 'Daya kalor tinggi ~4.200 kcal/kg cocok untuk bahan bakar biomassa & pengeringan gabah.'
         }
       ];
     }
@@ -69,59 +78,59 @@ export async function POST(req: Request) {
           id: 'buy-dem-1',
           buyer_id: 'buy-1',
           jenis_limbah_dicari: listing.jenis_limbah,
-          jumlah_dibutuhkan_per_minggu: 200,
+          jumlah_dibutuhkan_per_minggu: 1500,
           harga_ditawarkan_per_kg: 2000,
           tingkat_urgensi: 'tinggi',
           buyer: {
             id: 'buy-1',
-            nama: 'PT Suburtani Makmur Biofertilizer',
-            jenis_usaha: 'Produsen Biofertilizer & Pupuk Hayati',
-            alamat: 'Kawasan Agribisnis Bogor (3.2 km)'
+            nama: 'PT Suburtani Agro Media',
+            jenis_usaha: 'Produsen Media Tanam Arang Sekam & Biofertilizer',
+            alamat: 'Kawasan Agribisnis Karawang (8 km dari lokasi Gapoktan)'
           }
         },
         {
           id: 'buy-dem-2',
           buyer_id: 'buy-2',
           jenis_limbah_dicari: listing.jenis_limbah,
-          jumlah_dibutuhkan_per_minggu: 50,
-          harga_ditawarkan_per_kg: 1500,
+          jumlah_dibutuhkan_per_minggu: 800,
+          harga_ditawarkan_per_kg: 1600,
           tingkat_urgensi: 'sedang',
           buyer: {
             id: 'buy-2',
-            nama: 'Pembudidaya Jamur Makmur Sejahtera',
-            jenis_usaha: 'Petani Jamur Tiram',
-            alamat: 'Jl. Raya Sawangan Depok (1.5 km)'
+            nama: 'Pembudidaya Jamur Merang Makmur',
+            jenis_usaha: 'Kelompok Pembudidaya Jamur',
+            alamat: 'Kec. Majalaya, Karawang (4.5 km dari lokasi Gapoktan)'
           }
         },
         {
           id: 'buy-dem-3',
           buyer_id: 'buy-3',
           jenis_limbah_dicari: listing.jenis_limbah,
-          jumlah_dibutuhkan_per_minggu: 1000,
-          harga_ditawarkan_per_kg: 800,
+          jumlah_dibutuhkan_per_minggu: 3000,
+          harga_ditawarkan_per_kg: 900,
           tingkat_urgensi: 'rendah',
           buyer: {
             id: 'buy-3',
-            nama: 'EnergiHijau Biomassa Briket',
+            nama: 'Biomassa Nusantara Briket',
             jenis_usaha: 'Pabrik Briket & Energi Biomassa',
-            alamat: 'Kawasan Industri Cikarang (18 km)'
+            alamat: 'Kawasan Industri Subang (22 km)'
           }
         }
       ];
     }
 
-    const prompt = `Anda adalah AI Reasoning Engine untuk WasteMatch (Marketplace B2B Limbah Organik).
-Tugas Anda adalah melakukan optimasi 2-Lapis untuk menentukan rekomendasi buyer terbaik bagi Waste Listing berikut:
+    const prompt = `Anda adalah AI Reasoning Engine untuk TemuTani (B2B Agricultural Waste Marketplace).
+Tugas Anda adalah melakukan optimasi 2-Lapis untuk menentukan rekomendasi buyer sektor pertanian terbaik bagi Waste Listing dari Gapoktan/Kelompok Tani berikut:
 
-[INPUT WASTE LISTING]
-- Jenis Limbah: ${listing.jenis_limbah}
+[INPUT LISTING GAPOKTAN]
+- Jenis Limbah Pertanian: ${listing.jenis_limbah}
 - Jumlah: ${listing.jumlah_kg} kg
-- Lokasi Pickup: ${listing.lokasi_pickup}
+- Lokasi Pickup Gapoktan: ${listing.lokasi_pickup}
 
 [LAPIS 1 - KNOWLEDGE BASE LITERATUR PERTANIAN]
 ${JSON.stringify(kbRows, null, 2)}
 
-[LAPIS 2 - DEMAND BUYER AKTIF PLATFORM]
+[LAPIS 2 - DEMAND BUYER AKTIF PLATFORM SEKTOR PERTANIAN]
 ${JSON.stringify(buyerDemands, null, 2)}
 
 Hasilkan respons JSON persis dengan format array "recommendations":
@@ -132,8 +141,8 @@ Hasilkan respons JSON persis dengan format array "recommendations":
       "ranking": 1,
       "buyer_id": "string",
       "kategori_pemanfaatan": "string",
-      "skor": 96,
-      "alasan_teks": "🥇 Penjelasan rasional dalam bahasa Indonesia...",
+      "skor": 94,
+      "alasan_teks": "🥇 Penjelasan rasional pemanfaatan limbah bernilai ekonomi tertinggi dalam bahasa Indonesia...",
       "buyer": {
         "id": "string",
         "nama": "string",
@@ -150,43 +159,43 @@ Hasilkan respons JSON persis dengan format array "recommendations":
     return NextResponse.json({ recommendations: parsedData.recommendations || [] });
 
   } catch (error: any) {
-    console.error('Error in AI Match API:', error);
+    console.error('Error in TemuTani AI Match API:', error);
 
     const fallbackRecs: MatchRecommendation[] = [
       {
         id: 'rec-fallback-1',
-        listing_id: 'lst-demo',
+        listing_id: listing?.id || 'lst-demo',
         buyer_id: 'buy-1',
         ranking: 1,
-        kategori_pemanfaatan: 'Biofertilizer Organik Padat',
-        skor: 96,
-        alasan_teks: `🥇 Biofertilizer adalah pemanfaatan bernilai ekonomi tertinggi untuk ampas kopi. Buyer "PT Suburtani Makmur" memiliki demand aktif 200kg/minggu dengan harga Rp 2.000/kg (jarak 3.2km).`,
+        kategori_pemanfaatan: 'Media Tanam Arang Sekam & Biofertilizer',
+        skor: 94,
+        alasan_teks: `🥇 Media tanam / arang sekam adalah pemanfaatan bernilai ekonomi tertinggi untuk ${listing?.jenis_limbah || 'Sekam Padi'}. Buyer "PT Suburtani Agro Media" memiliki demand aktif 1,5 ton/minggu dengan harga Rp 2.000/kg (jarak 8 km dari Gapoktan).`,
         generated_at: new Date().toISOString(),
         buyer: {
           id: 'buy-1',
-          nama: 'PT Suburtani Makmur Biofertilizer',
-          email: 'suburtani@bio.id',
+          nama: 'PT Suburtani Agro Media',
+          email: 'suburtani@agromedia.id',
           role: 'buyer',
-          jenis_usaha: 'Produsen Biofertilizer',
-          alamat: 'Kawasan Agribisnis, Bogor'
+          jenis_usaha: 'Produsen Media Tanam & Biofertilizer',
+          alamat: 'Kawasan Agribisnis Karawang'
         }
       },
       {
         id: 'rec-fallback-2',
-        listing_id: 'lst-demo',
+        listing_id: listing?.id || 'lst-demo',
         buyer_id: 'buy-2',
         ranking: 2,
-        kategori_pemanfaatan: 'Media Tanam Jamur Tiram',
-        skor: 84,
-        alasan_teks: `🥈 Pembudidaya Jamur Makmur lokasi sangat dekat (1.5km), namun kapasitas serap terbatas 50kg/minggu sehingga sisa material tidak terserap habis.`,
+        kategori_pemanfaatan: 'Media Tanam Jamur Merang',
+        skor: 82,
+        alasan_teks: `🥈 Pembudidaya Jamur Merang Makmur berlokasi dekat (4.5 km), memiliki demand 800 kg/minggu dengan harga Rp 1.600/kg.`,
         generated_at: new Date().toISOString(),
         buyer: {
           id: 'buy-2',
-          nama: 'Pembudidaya Jamur Makmur',
+          nama: 'Pembudidaya Jamur Merang Makmur',
           email: 'jamur@makmur.id',
           role: 'buyer',
-          jenis_usaha: 'Petani Jamur Tiram',
-          alamat: 'Sawangan, Depok'
+          jenis_usaha: 'Petani Jamur Merang',
+          alamat: 'Kec. Majalaya, Karawang'
         }
       }
     ];

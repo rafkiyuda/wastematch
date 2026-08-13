@@ -5,11 +5,12 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
 import { Plus, Building2, Scale, DollarSign, AlertCircle, CheckCircle2, Calendar, MapPin, Trash2, ArrowRight, ShieldCheck, Clock, MessageSquare, Truck, Layers, Inbox } from 'lucide-react';
-import { BuyerDemand, CATEGORY_LABELS, WasteCategory, WasteTransaction } from '@/lib/types';
+import ChatNegotiationModal from '@/components/ChatNegotiationModal';
+import { BuyerDemand, CATEGORY_LABELS, WasteCategory, WasteTransaction, UserProfile } from '@/lib/types';
 import { db } from '@/lib/db';
 
 export default function BuyerDashboard() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [demands, setDemands] = useState<BuyerDemand[]>([]);
   const [transactions, setTransactions] = useState<WasteTransaction[]>([]);
   const [activeTab, setActiveTab] = useState<'offers' | 'demands' | 'logistics'>('offers');
@@ -19,14 +20,18 @@ export default function BuyerDashboard() {
   const [selectedTxForSchedule, setSelectedTxForSchedule] = useState<WasteTransaction | null>(null);
   const [pickupDate, setPickupDate] = useState('');
 
+  // Chat modal state
+  const [selectedTxForChat, setSelectedTxForChat] = useState<WasteTransaction | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   // Form State
-  const [jenisLimbahDicari, setJenisLimbahDicari] = useState<WasteCategory>('ampas_kopi');
-  const [jumlahDibutuhkan, setJumlahDibutuhkan] = useState<number>(200);
+  const [jenisLimbahDicari, setJenisLimbahDicari] = useState<WasteCategory>('sekam_padi');
+  const [jumlahDibutuhkan, setJumlahDibutuhkan] = useState<number>(1500);
   const [hargaDitawarkan, setHargaDitawarkan] = useState<number>(2000);
   const [tingkatUrgensi, setTingkatUrgensi] = useState<'rendah' | 'sedang' | 'tinggi'>('tinggi');
 
   useEffect(() => {
-    const stored = localStorage.getItem('wastematch_user');
+    const stored = localStorage.getItem('temutani_user') || localStorage.getItem('wastematch_user');
     if (stored) {
       const u = JSON.parse(stored);
       setUser(u);
@@ -37,8 +42,8 @@ export default function BuyerDashboard() {
       {
         id: 'dem-buy-1',
         buyer_id: 'buy-demo-1',
-        jenis_limbah_dicari: 'ampas_kopi',
-        jumlah_dibutuhkan_per_minggu: 200,
+        jenis_limbah_dicari: 'sekam_padi',
+        jumlah_dibutuhkan_per_minggu: 1500,
         harga_ditawarkan_per_kg: 2000,
         tingkat_urgensi: 'tinggi',
         status: 'aktif',
@@ -47,9 +52,9 @@ export default function BuyerDashboard() {
       {
         id: 'dem-buy-2',
         buyer_id: 'buy-demo-1',
-        jenis_limbah_dicari: 'kulit_buah_sayur',
-        jumlah_dibutuhkan_per_minggu: 500,
-        harga_ditawarkan_per_kg: 1800,
+        jenis_limbah_dicari: 'jerami_padi',
+        jumlah_dibutuhkan_per_minggu: 2500,
+        harga_ditawarkan_per_kg: 1600,
         tingkat_urgensi: 'sedang',
         status: 'aktif',
         created_at: new Date(Date.now() - 86400000).toISOString()
@@ -57,7 +62,7 @@ export default function BuyerDashboard() {
     ];
 
     // Seed Active Transactions & Submitted Offers
-    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
+    const savedTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('temutani_transactions') || localStorage.getItem('wastematch_transactions') || '[]');
     const initialTransactions: WasteTransaction[] = [
       {
         id: 'tx-1001',
@@ -66,25 +71,25 @@ export default function BuyerDashboard() {
         generator_id: 'gen-demo-1',
         status: 'disepakati',
         harga_penawaran_per_kg: 2000,
-        jumlah_kg_diminta: 500,
-        catatan_penawaran: 'Pengambilan bahan baku biofertilizer.',
+        jumlah_kg_diminta: 2000,
+        catatan_penawaran: 'Pengambilan bahan baku arang sekam & biofertilizer.',
         konfirmasi_generator: true,
         konfirmasi_buyer: false,
         created_at: new Date().toISOString(),
         listing: {
           id: 'lst-101',
           generator_id: 'gen-demo-1',
-          jenis_limbah: 'ampas_kopi',
-          jumlah_kg: 500,
-          lokasi_pickup: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-          jadwal_tersedia: 'Setiap Hari Kerja (09.00 - 17.00 WIB)',
+          jenis_limbah: 'sekam_padi',
+          jumlah_kg: 2000,
+          lokasi_pickup: 'Penggilingan Padi Gapoktan Sukamaju, Karawang',
+          jadwal_tersedia: 'Setiap Musim Panen (08.00 - 17.00 WIB)',
           status: 'aktif',
           created_at: new Date().toISOString()
         },
         generator: {
           id: 'gen-demo-1',
-          nama: 'Kopi Kencana Espresso',
-          email: 'generator@demo.com',
+          nama: 'Gapoktan Sukamaju',
+          email: 'gapoktan@sukamaju.id',
           role: 'generator',
           no_hp: '081299887766'
         }
@@ -164,6 +169,13 @@ export default function BuyerDashboard() {
       return tx;
     });
     setTransactions(updated);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
+  };
+
+  const handleUpdateTxFromChat = (updatedTx: WasteTransaction) => {
+    const updated = transactions.map(tx => tx.id === updatedTx.id ? updatedTx : tx);
+    setTransactions(updated);
+    setSelectedTxForChat(updatedTx);
     localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
   };
 
@@ -260,7 +272,7 @@ export default function BuyerDashboard() {
 
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-slate-900">
-                      Penjual: {tx.generator?.nama || tx.listing?.generator?.nama || 'Kopi Kencana Espresso'}
+                      Penjual: {tx.generator?.nama_gapoktan || tx.generator?.nama || tx.listing?.generator?.nama || 'Gapoktan Sukamaju Karawang'}
                     </h3>
                     <p className="text-xs text-slate-700 font-medium flex items-center gap-1.5">
                       <Scale className="w-4 h-4 text-emerald-600" /> Pasokan Material: <strong>{tx.jumlah_kg_diminta || tx.listing?.jumlah_kg || 500}kg</strong>
@@ -289,40 +301,52 @@ export default function BuyerDashboard() {
                     <p className="text-[11px] text-slate-500 font-medium">WhatsApp Penjual: {tx.generator?.no_hp || '081299887766'}</p>
                   </div>
 
-                  {tx.status === 'penawaran_diajukan' ? (
-                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
-                      Penawaran resmi telah terkirim. Menunggu konfirmasi persetujuan dari pihak Generator.
-                    </div>
-                  ) : tx.status === 'disepakati' ? (
+                  <div className="pt-2 flex flex-col gap-2">
                     <button
                       onClick={() => {
-                        setSelectedTxForSchedule(tx);
-                        setShowScheduleModal(true);
+                        setSelectedTxForChat(tx);
+                        setIsChatOpen(true);
                       }}
-                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                      className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5"
                     >
-                      <Calendar className="w-4 h-4" /> Atur Tanggal & Jam Self-Pickup
+                      <MessageSquare className="w-4 h-4" /> Buka Chat & Negosiasi 💬
                     </button>
-                  ) : tx.status === 'dijadwalkan' ? (
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between font-medium">
-                        <span>Jadwal Pickup Kesepakatan:</span>
-                        <strong className="text-slate-900">{tx.jadwal_pickup ? new Date(tx.jadwal_pickup).toLocaleString('id-ID') : 'Besok, 10.00 WIB'}</strong>
-                      </div>
 
+                    {tx.status === 'penawaran_diajukan' ? (
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+                        Penawaran resmi telah terkirim. Menunggu konfirmasi persetujuan dari pihak Generator.
+                      </div>
+                    ) : tx.status === 'disepakati' ? (
                       <button
-                        onClick={() => handleTwoWayConfirm(tx.id)}
-                        className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2"
+                        onClick={() => {
+                          setSelectedTxForSchedule(tx);
+                          setShowScheduleModal(true);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
                       >
-                        <CheckCircle2 className="w-4 h-4" /> Konfirmasi Pickup Selesai (Two-Way)
+                        <Calendar className="w-4 h-4" /> Atur Tanggal & Jam Self-Pickup
                       </button>
-                    </div>
-                  ) : (
-                    <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Transaksi Selesai & Limbah Berhasil Diserap!
-                    </div>
-                  )}
+                    ) : tx.status === 'dijadwalkan' ? (
+                      <div className="space-y-3">
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between font-medium">
+                          <span>Jadwal Pickup Kesepakatan:</span>
+                          <strong className="text-slate-900">{tx.jadwal_pickup ? new Date(tx.jadwal_pickup).toLocaleString('id-ID') : 'Besok, 10.00 WIB'}</strong>
+                        </div>
+
+                        <button
+                          onClick={() => handleTwoWayConfirm(tx.id)}
+                          className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Konfirmasi Pickup Selesai (Two-Way)
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Transaksi Selesai & Limbah Berhasil Diserap!
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -415,9 +439,9 @@ export default function BuyerDashboard() {
                   {transactions.filter(t => t.status === 'dijadwalkan' || t.status === 'selesai').map(tx => (
                     <div key={tx.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
                       <div className="space-y-1">
-                        <span className="font-extrabold text-slate-900">{tx.generator?.nama || 'Kopi Kencana Espresso'}</span>
-                        <p className="text-slate-600">{tx.listing?.lokasi_pickup || 'Jl. Senopati No. 88, Kebayoran Baru'}</p>
-                        <p className="text-emerald-700 font-bold">Material: {tx.jumlah_kg_diminta || 500}kg Ampas Kopi</p>
+                        <span className="font-extrabold text-slate-900">{tx.generator?.nama_gapoktan || tx.generator?.nama || 'Gapoktan Sukamaju Karawang'}</span>
+                        <p className="text-slate-600">{tx.listing?.lokasi_pickup || 'Penggilingan Padi Gapoktan Sukamaju, Karawang'}</p>
+                        <p className="text-emerald-700 font-bold">Material: {tx.jumlah_kg_diminta || 2000}kg Sekam Padi</p>
                       </div>
 
                       <div className="flex flex-col items-end gap-1">
@@ -458,17 +482,17 @@ export default function BuyerDashboard() {
 
               <form onSubmit={handleAddDemand} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Jenis Limbah Dicari (Kategori Tertutup Fase 1)</label>
+                  <label className="text-xs font-bold text-slate-700">Jenis Limbah Dicari (Fase 1 - 5 Komoditas Pertanian)</label>
                   <select
                     value={jenisLimbahDicari}
                     onChange={(e) => setJenisLimbahDicari(e.target.value as WasteCategory)}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-teal-500 focus:outline-none"
                   >
-                    <option value="ampas_kopi">Ampas Kopi (Coffee Grounds)</option>
                     <option value="sekam_padi">Sekam Padi (Rice Husk)</option>
-                    <option value="kulit_buah_sayur">Kulit Buah & Sayur</option>
-                    <option value="serbuk_kayu">Serbuk Kayu / Gergaji</option>
-                    <option value="sisa_makanan">Sisa Makanan Non-B3</option>
+                    <option value="jerami_padi">Jerami Padi (Rice Straw)</option>
+                    <option value="limbah_jagung">Limbah Jagung (Tongkol & Batang)</option>
+                    <option value="sabut_kelapa">Sabut Kelapa (Coconut Coir)</option>
+                    <option value="jerami_kedelai">Jerami Kedelai (Soybean Straw)</option>
                   </select>
                 </div>
 
@@ -575,6 +599,23 @@ export default function BuyerDashboard() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Chat & Negotiation Modal */}
+        {selectedTxForChat && (
+          <ChatNegotiationModal
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            transaction={selectedTxForChat}
+            currentUser={user || {
+              id: 'buy-demo-1',
+              nama: 'PT Suburtani Makmur Biofertilizer',
+              email: 'buyer@demo.com',
+              role: 'buyer',
+              jenis_usaha: 'Produsen Biofertilizer & Pupuk Hayati'
+            }}
+            onUpdateTransaction={handleUpdateTxFromChat}
+          />
         )}
       </main>
 

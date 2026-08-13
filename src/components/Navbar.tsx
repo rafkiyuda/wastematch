@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Leaf, Menu, X, User, LogOut, Sparkles, Building2, Store, Recycle } from 'lucide-react';
+import { Leaf, Menu, X, User, LogOut, Sparkles, Building2, Store, Sprout } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 
 export default function Navbar() {
@@ -10,7 +10,7 @@ export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('wastematch_user');
+    const stored = localStorage.getItem('temutani_user') || localStorage.getItem('wastematch_user');
     if (stored) {
       try {
         setCurrentUser(JSON.parse(stored));
@@ -21,6 +21,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem('temutani_user');
     localStorage.removeItem('wastematch_user');
     setCurrentUser(null);
     window.location.href = '/';
@@ -31,12 +32,12 @@ export default function Navbar() {
       {/* Brand Logo */}
       <Link href="/" className="flex items-center gap-2 group">
         <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
-          <Recycle className="w-5 h-5" />
+          <Sprout className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
           <span className="font-extrabold text-xl tracking-tight text-slate-900 flex items-center gap-1.5">
-            Waste<span className="text-emerald-600">Match</span>
-            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">B2B AI</span>
+            Temu<span className="text-emerald-600">Tani</span>
+            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">B2B AGRI-AI</span>
           </span>
         </div>
       </Link>
@@ -45,7 +46,7 @@ export default function Navbar() {
       <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
         <Link href="/marketplace" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
           <Store className="w-4 h-4 text-emerald-600" />
-          Marketplace Limbah
+          Marketplace Pasokan
         </Link>
         <Link href="/knowledge-base" className="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
           <Leaf className="w-4 h-4 text-emerald-600" />
@@ -66,9 +67,9 @@ export default function Navbar() {
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all shadow-sm"
             >
               <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{currentUser.nama}</span>
-              <span className="capitalize px-1.5 py-0.5 rounded bg-emerald-600 text-[10px] text-white font-semibold">
-                {currentUser.role}
+              <span>{currentUser.nama_gapoktan || currentUser.nama}</span>
+              <span className="capitalize px-2 py-0.5 rounded bg-emerald-600 text-[10px] text-white font-semibold">
+                {currentUser.role === 'generator' ? 'Gapoktan / Kelompok Tani' : 'Pembeli Limbah'}
               </span>
             </Link>
 
@@ -93,7 +94,7 @@ export default function Navbar() {
               className="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
             >
               <User className="w-4 h-4" />
-              Daftar Sekarang
+              Daftar Akun
             </Link>
           </div>
         )}
@@ -117,7 +118,7 @@ export default function Navbar() {
             className="flex items-center gap-3 text-slate-700 hover:text-emerald-600 font-semibold py-2 border-b border-slate-100"
           >
             <Store className="w-5 h-5 text-emerald-600" />
-            Marketplace Limbah
+            Marketplace Pasokan
           </Link>
           <Link
             href="/knowledge-base"
@@ -134,7 +135,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2.5 px-4 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-center border border-emerald-200"
               >
-                Dashboard {currentUser.role === 'generator' ? 'Generator' : 'Buyer'} ({currentUser.nama})
+                Dashboard {currentUser.role === 'generator' ? 'Gapoktan' : 'Pembeli Limbah'}
               </Link>
               <button
                 onClick={handleLogout}

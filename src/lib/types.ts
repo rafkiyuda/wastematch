@@ -1,12 +1,16 @@
 export type Role = 'generator' | 'buyer';
 
-export type WasteCategory = 'ampas_kopi' | 'sekam_padi' | 'kulit_buah_sayur' | 'serbuk_kayu' | 'sisa_makanan';
+export type WasteCategory = 'sekam_padi' | 'jerami_padi' | 'limbah_jagung' | 'sabut_kelapa' | 'jerami_kedelai';
 
 export interface UserProfile {
   id: string;
   nama: string;
   email: string;
   role: Role;
+  nama_gapoktan?: string;
+  wilayah?: string;
+  jumlah_anggota_petani?: number;
+  komoditas_utama?: string;
   jenis_usaha?: string;
   alamat?: string;
   no_hp?: string;
@@ -62,28 +66,64 @@ export interface MatchRecommendation {
   demand?: BuyerDemand;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_role: Role | 'system' | 'ai';
+  text: string;
+  timestamp: string;
+  offer_proposal?: {
+    harga_per_kg: number;
+    jumlah_kg: number;
+    jadwal_pickup: string;
+    status: 'pending' | 'accepted' | 'declined';
+  };
+}
+
+export interface B2BDocumentation {
+  no_po?: string;
+  no_spk?: string;
+  no_surat_jalan?: string;
+  no_bast?: string;
+  no_invoice?: string;
+  spesifikasi_kadar_air_max_persen?: number;
+  plat_nomor_armada?: string;
+  nama_driver?: string;
+  no_hp_driver?: string;
+  berat_bruto_kg?: number;
+  berat_tara_kg?: number;
+  berat_netto_kg?: number;
+  potongan_kadar_air_kg?: number;
+  total_bayar_final?: number;
+  status_pembayaran?: 'belum_dibayar' | 'terbayar';
+}
+
 export interface WasteTransaction {
   id: string;
   listing_id: string;
   buyer_id: string;
   generator_id: string;
-  status: 'penawaran_diajukan' | 'disepakati' | 'dijadwalkan' | 'selesai' | 'dibatalkan';
+  status: 'penawaran_diajukan' | 'negosiasi_berjalan' | 'kontra_penawaran' | 'disepakati' | 'dijadwalkan' | 'selesai' | 'dibatalkan';
   harga_penawaran_per_kg?: number;
   jumlah_kg_diminta?: number;
   catatan_penawaran?: string;
   jadwal_pickup?: string;
   konfirmasi_generator: boolean;
   konfirmasi_buyer: boolean;
+  messages?: ChatMessage[];
+  b2b_docs?: B2BDocumentation;
   created_at: string;
+  updated_at?: string;
   listing?: WasteListing;
   buyer?: UserProfile;
   generator?: UserProfile;
 }
 
 export const CATEGORY_LABELS: Record<WasteCategory, string> = {
-  ampas_kopi: 'Ampas Kopi (Coffee Grounds)',
   sekam_padi: 'Sekam Padi (Rice Husk)',
-  kulit_buah_sayur: 'Kulit Buah & Sayur (Fruit/Veg Waste)',
-  serbuk_kayu: 'Serbuk Kayu / Gergaji (Sawdust)',
-  sisa_makanan: 'Sisa Makanan (Food Scrap Non-B3)',
+  jerami_padi: 'Jerami Padi (Rice Straw)',
+  limbah_jagung: 'Limbah Jagung (Tongkol & Batang)',
+  sabut_kelapa: 'Sabut Kelapa (Coconut Coir)',
+  jerami_kedelai: 'Jerami Kedelai (Soybean Straw)',
 };

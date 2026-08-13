@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'WasteMatch — B2B Organic Waste Marketplace Powered by AI',
-  description: 'Marketplace B2B limbah organik yang menghubungkan UMKM penghasil limbah dengan sektor pertanian berbasis Gemini AI Reasoning Engine (GEMASTIK 2026).',
+  title: 'TemuTani — B2B Agricultural Waste Marketplace Powered by AI',
+  description: 'Marketplace B2B limbah pertanian yang menghubungkan Kelompok Tani / Gapoktan dengan sektor industri pertanian berbasis AI Reasoning Engine (GEMASTIK 2026).',
   manifest: '/manifest.json',
 };
 

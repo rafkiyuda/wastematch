@@ -60,8 +60,8 @@ export default function OfflineBanner() {
         <div className="flex items-center gap-2">
           {!isOnline ? (
             <>
-              <WifiOff className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span>Mode Offline Resilience Aktif — Data input Anda tersimpan secara lokal dan tidak akan hilang.</span>
+              <WifiOff className="w-4 h-4 text-amber-600 animate-pulse" />
+              <span>Mode Offline Resilience Aktif — Pengurus Gapoktan dapat menginput listing limbah tanpa terkendala sinyal lemah di pedesaan.</span>
             </>
           ) : (
             <>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Recycle, ArrowRight, Building2, Store, Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Sprout, ArrowRight, Building2, Store, Lock, Mail, ShieldCheck, Users } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -13,24 +13,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'generator' | 'buyer'>('generator');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg('');
 
     setTimeout(() => {
       const mockUser = {
         id: role === 'generator' ? 'gen-demo-1' : 'buy-demo-1',
-        nama: role === 'generator' ? 'Kopi Kencana Espresso' : 'PT Suburtani Makmur',
-        email: email || (role === 'generator' ? 'generator@demo.com' : 'buyer@demo.com'),
+        nama: role === 'generator' ? 'Pengurus Gapoktan Sukamaju' : 'PT Suburtani Agro Media',
+        nama_gapoktan: role === 'generator' ? 'Gapoktan Sukamaju Karawang' : undefined,
+        email: email || (role === 'generator' ? 'gapoktan@sukamaju.id' : 'buyer@agromedia.id'),
         role: role,
-        jenis_usaha: role === 'generator' ? 'Coffee Shop' : 'Biofertilizer Factory',
-        alamat: role === 'generator' ? 'Jl. Senopati No. 88, Jakarta Selatan' : 'Kawasan Agribisnis Bogor, Jawa Barat',
+        jenis_usaha: role === 'generator' ? 'Gabungan Kelompok Tani Padi' : 'Produsen Media Tanam & Biofertilizer',
+        alamat: role === 'generator' ? 'Desa Sukamaju, Kec. Rawamerta, Karawang' : 'Kawasan Agribisnis Karawang, Jawa Barat',
         no_hp: '081299887766'
       };
 
+      localStorage.setItem('temutani_user', JSON.stringify(mockUser));
       localStorage.setItem('wastematch_user', JSON.stringify(mockUser));
       setLoading(false);
       
@@ -45,22 +45,24 @@ export default function LoginPage() {
   const handleQuickDemo = (demoRole: 'generator' | 'buyer') => {
     const mockUser = demoRole === 'generator' ? {
       id: 'gen-demo-1',
-      nama: 'Kopi Kencana Espresso',
-      email: 'generator@demo.com',
+      nama: 'Pengurus Gapoktan Sukamaju',
+      nama_gapoktan: 'Gapoktan Sukamaju Karawang',
+      email: 'gapoktan@sukamaju.id',
       role: 'generator',
-      jenis_usaha: 'Coffee Shop & Bakery',
-      alamat: 'Jl. Senopati No. 88, Jakarta Selatan',
+      jenis_usaha: 'Gabungan Kelompok Tani Padi',
+      alamat: 'Desa Sukamaju, Kec. Rawamerta, Karawang',
       no_hp: '081299887766'
     } : {
       id: 'buy-demo-1',
-      nama: 'PT Suburtani Makmur',
-      email: 'buyer@demo.com',
+      nama: 'PT Suburtani Agro Media',
+      email: 'buyer@agromedia.id',
       role: 'buyer',
-      jenis_usaha: 'Produsen Biofertilizer & Organik',
-      alamat: 'Jl. Raya Agrobisnis KM 12, Bogor',
+      jenis_usaha: 'Produsen Media Tanam & Biofertilizer',
+      alamat: 'Kawasan Agribisnis Karawang, Jawa Barat',
       no_hp: '081122334455'
     };
 
+    localStorage.setItem('temutani_user', JSON.stringify(mockUser));
     localStorage.setItem('wastematch_user', JSON.stringify(mockUser));
     router.push(demoRole === 'generator' ? '/generator/dashboard' : '/buyer/dashboard');
   };
@@ -73,10 +75,10 @@ export default function LoginPage() {
         <div className="w-full max-w-md bg-white p-8 rounded-3xl border border-emerald-200 shadow-xl space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-3">
-              <Recycle className="w-6 h-6 animate-pulse" />
+              <Sprout className="w-6 h-6 animate-pulse" />
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Masuk ke WasteMatch</h1>
-            <p className="text-xs text-slate-600 font-medium">Platform B2B Pencocokan Limbah Organik & Pembeli Agribisnis</p>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Masuk ke TemuTani</h1>
+            <p className="text-xs text-slate-600 font-medium">Marketplace B2B Limbah Pertanian Gapoktan & Pembeli Agribisnis</p>
           </div>
 
           {/* Role selector tab */}
@@ -84,24 +86,24 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setRole('generator')}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 role === 'generator'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Store className="w-4 h-4" /> Waste Generator
+              <Users className="w-3.5 h-3.5" /> Gapoktan
             </button>
             <button
               type="button"
               onClick={() => setRole('buyer')}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 role === 'buyer'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Building2 className="w-4 h-4" /> Waste Buyer
+              <Building2 className="w-3.5 h-3.5" /> Pembeli (Pabrik/Industri)
             </button>
           </div>
 
@@ -114,7 +116,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={role === 'generator' ? 'coffee@kencana.id' : 'procurement@suburtani.com'}
+                  placeholder={role === 'generator' ? 'gapoktan@sukamaju.id' : 'procurement@suburtani.com'}
                   required
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-emerald-500"
                 />
@@ -154,14 +156,14 @@ export default function LoginPage() {
                 onClick={() => handleQuickDemo('generator')}
                 className="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
               >
-                <Store className="w-3.5 h-3.5 text-emerald-600" /> Demo Generator
+                <Store className="w-3.5 h-3.5 text-emerald-600" /> Demo Penjual (Petani)
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickDemo('buyer')}
                 className="py-2.5 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
               >
-                <Building2 className="w-3.5 h-3.5 text-teal-600" /> Demo Buyer
+                <Building2 className="w-3.5 h-3.5 text-teal-600" /> Demo Pembeli (Pabrik)
               </button>
             </div>
           </div>

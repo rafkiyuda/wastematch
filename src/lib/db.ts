@@ -1,8 +1,9 @@
 import Dexie, { Table } from 'dexie';
+import { WasteCategory } from './types';
 
 export interface OfflineListing {
   id?: number;
-  jenis_limbah: 'ampas_kopi' | 'sekam_padi' | 'kulit_buah_sayur' | 'serbuk_kayu' | 'sisa_makanan';
+  jenis_limbah: WasteCategory;
   jumlah_kg: number;
   foto_url?: string;
   lokasi_pickup: string;
@@ -13,7 +14,7 @@ export interface OfflineListing {
 
 export interface OfflineDemand {
   id?: number;
-  jenis_limbah_dicari: 'ampas_kopi' | 'sekam_padi' | 'kulit_buah_sayur' | 'serbuk_kayu' | 'sisa_makanan';
+  jenis_limbah_dicari: WasteCategory;
   jumlah_dibutuhkan_per_minggu: number;
   harga_ditawarkan_per_kg: number;
   tingkat_urgensi: 'rendah' | 'sedang' | 'tinggi';
@@ -21,12 +22,12 @@ export interface OfflineDemand {
   synced: boolean;
 }
 
-export class WasteMatchDatabase extends Dexie {
+export class TemuTaniDatabase extends Dexie {
   offlineListings!: Table<OfflineListing>;
   offlineDemands!: Table<OfflineDemand>;
 
   constructor() {
-    super('WasteMatchLocalDB');
+    super('TemuTaniLocalDB');
     this.version(1).stores({
       offlineListings: '++id, jenis_limbah, createdAt',
       offlineDemands: '++id, jenis_limbah_dicari, createdAt',
@@ -34,4 +35,4 @@ export class WasteMatchDatabase extends Dexie {
   }
 }
 
-export const db = new WasteMatchDatabase();
+export const db = new TemuTaniDatabase();

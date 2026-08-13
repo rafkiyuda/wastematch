@@ -6,27 +6,26 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
 import {
-  Recycle,
   Sparkles,
   ArrowRight,
-  TrendingUp,
   ShieldCheck,
   Building2,
   Store,
   WifiOff,
   Leaf,
   CheckCircle2,
-  Scale,
   Award,
   BarChart3,
   Globe2,
-  RefreshCw
+  RefreshCw,
+  Sprout,
+  Users
 } from 'lucide-react';
 import { MatchRecommendation } from '@/lib/types';
 
 export default function HomePage() {
-  const [demoWasteType, setDemoWasteType] = useState('ampas_kopi');
-  const [demoKg, setDemoKg] = useState(500);
+  const [demoWasteType, setDemoWasteType] = useState('sekam_padi');
+  const [demoKg, setDemoKg] = useState(2000);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoResults, setDemoResults] = useState<MatchRecommendation[] | null>(null);
 
@@ -39,8 +38,8 @@ export default function HomePage() {
       generator_id: 'gen-demo-1',
       jenis_limbah: demoWasteType as any,
       jumlah_kg: demoKg,
-      lokasi_pickup: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-      jadwal_tersedia: 'Setiap Hari Kerja (09.00 - 17.00 WIB)',
+      lokasi_pickup: 'Kudus, Jawa Tengah (Gapoktan Tani Makmur)',
+      jadwal_tersedia: 'Setiap Musim Panen (08.00 - 17.00 WIB)',
       status: 'aktif' as const,
       created_at: new Date().toISOString()
     };
@@ -55,24 +54,23 @@ export default function HomePage() {
       setDemoResults(data.recommendations || []);
     } catch (e) {
       console.error(e);
-      // Fallback
       setDemoResults([
         {
           id: 'rec-1',
           listing_id: 'demo-lst-1',
           buyer_id: 'buy-1',
           ranking: 1,
-          kategori_pemanfaatan: 'Biofertilizer Organik Padat',
-          skor: 96,
-          alasan_teks: `🥇 Biofertilizer adalah pemanfaatan bernilai ekonomi tertinggi untuk Ampas Kopi. Buyer "PT Suburtani Makmur" membutuhkan 200kg/minggu dengan harga Rp 2.000/kg (jarak 3.2km).`,
+          kategori_pemanfaatan: 'Media Tanam Arang Sekam & Biofertilizer',
+          skor: 94,
+          alasan_teks: `🥇 Media tanam / arang sekam adalah pemanfaatan bernilai ekonomi tertinggi untuk Sekam Padi. Buyer "PT Suburtani Agro Media" memiliki demand aktif 1,5 ton/minggu dengan harga Rp 2.000/kg (jarak 8 km dari Gapoktan).`,
           generated_at: new Date().toISOString(),
           buyer: {
             id: 'buy-1',
-            nama: 'PT Suburtani Makmur Biofertilizer',
-            email: 'suburtani@bio.id',
+            nama: 'PT Suburtani Agro Media',
+            email: 'suburtani@agromedia.id',
             role: 'buyer',
-            jenis_usaha: 'Produsen Biofertilizer',
-            alamat: 'Kawasan Agribisnis, Bogor'
+            jenis_usaha: 'Produsen Media Tanam & Biofertilizer',
+            alamat: 'Kawasan Agribisnis Karawang'
           }
         },
         {
@@ -80,22 +78,21 @@ export default function HomePage() {
           listing_id: 'demo-lst-1',
           buyer_id: 'buy-2',
           ranking: 2,
-          kategori_pemanfaatan: 'Media Tanam Jamur Tiram',
-          skor: 84,
-          alasan_teks: `🥈 Pembudidaya Jamur Makmur lokasi sangat dekat (1.5km), namun kapasitas serap terbatas 50kg/minggu sehingga sisa material tidak terserap habis.`,
+          kategori_pemanfaatan: 'Media Tanam Jamur Merang',
+          skor: 82,
+          alasan_teks: `🥈 Pembudidaya Jamur Merang Makmur berlokasi dekat (4.5 km), memiliki demand 800 kg/minggu dengan harga Rp 1.600/kg.`,
           generated_at: new Date().toISOString(),
           buyer: {
             id: 'buy-2',
-            nama: 'Pembudidaya Jamur Makmur',
+            nama: 'Pembudidaya Jamur Merang Makmur',
             email: 'jamur@makmur.id',
             role: 'buyer',
-            jenis_usaha: 'Petani Jamur Tiram',
-            alamat: 'Sawangan, Depok'
+            jenis_usaha: 'Petani Jamur Merang',
+            alamat: 'Kec. Majalaya, Karawang'
           }
         }
       ]);
     } finally {
-      demoLoading && setDemoLoading(false);
       setDemoLoading(false);
     }
   };
@@ -112,15 +109,15 @@ export default function HomePage() {
       <section className="relative z-10 pt-36 pb-20 px-4 max-w-7xl mx-auto text-center space-y-8">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold tracking-wide shadow-sm">
           <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" />
-          <span>B2B Organic Waste Marketplace Powered by Gemini AI</span>
+          <span>B2B Agricultural Waste Marketplace Powered by Gemini AI</span>
         </div>
 
         <h1 className="text-4xl md:text-7xl font-extrabold text-slate-900 tracking-tight max-w-5xl mx-auto leading-[1.1]">
-          Ubah Limbah Organik UMKM Menjadi <span className="text-gradient">Komoditas Bernilai Tinggi</span>
+          Penjualan Limbah Pertanian Gapoktan <span className="text-gradient">Langsung ke Pabrik Pembeli</span>
         </h1>
 
         <p className="text-base md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
-          WasteMatch menghubungkan penghasil limbah organik (coffee shop, restoran, katering) dengan pembeli sektor pertanian menggunakan AI Reasoning 2-Lapis untuk merekomendasikan pemanfaatan bernilai ekonomi tertinggi.
+          <strong>TemuTani</strong> menghubungkan <strong>Kelompok Tani / Gapoktan (Penjual Limbah Hasil Panen)</strong> dengan <strong>Perusahaan & Industri Agribisnis (Pembeli Bahan Baku)</strong> menggunakan AI Reasoning 2-Lapis untuk merekomendasikan pemanfaatan bernilai ekonomi tertinggi.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -128,7 +125,7 @@ export default function HomePage() {
             href="/register"
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-base shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2"
           >
-            Mulai Gabung Marketplace <ArrowRight className="w-5 h-5" />
+            Daftar Gapoktan / Buyer <ArrowRight className="w-5 h-5" />
           </Link>
           <Link
             href="/marketplace"
@@ -141,20 +138,20 @@ export default function HomePage() {
         {/* Stats Strip */}
         <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-1">
-            <span className="text-2xl md:text-3xl font-extrabold text-emerald-600">5 Kategori</span>
-            <p className="text-xs text-slate-500 font-medium">Limbah Organik Non-B3</p>
+            <span className="text-2xl md:text-3xl font-extrabold text-emerald-600">5 Komoditas</span>
+            <p className="text-xs text-slate-500 font-medium">Limbah Pertanian Non-B3</p>
           </div>
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-1">
-            <span className="text-2xl md:text-3xl font-extrabold text-teal-600">2-Lapis</span>
-            <p className="text-xs text-slate-500 font-medium">AI Matching Engine</p>
+            <span className="text-2xl md:text-3xl font-extrabold text-teal-600">2-Lapis AI</span>
+            <p className="text-xs text-slate-500 font-medium">Matching & Reasoning Engine</p>
           </div>
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-1">
-            <span className="text-2xl md:text-3xl font-extrabold text-emerald-600">Self-Pickup</span>
-            <p className="text-xs text-slate-500 font-medium">Model Logistik Asset-Light</p>
+            <span className="text-2xl md:text-3xl font-extrabold text-emerald-600">Gapoktan</span>
+            <p className="text-xs text-slate-500 font-medium">Agregasi Volume Skala Ton</p>
           </div>
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center space-y-1">
-            <span className="text-2xl md:text-3xl font-extrabold text-teal-600">100% PWA</span>
-            <p className="text-xs text-slate-500 font-medium">Offline Resilient Storage</p>
+            <span className="text-2xl md:text-3xl font-extrabold text-teal-600">Offline PWA</span>
+            <p className="text-xs text-slate-500 font-medium">Resilient Lapangan Pedesaan</p>
           </div>
         </div>
       </section>
@@ -166,31 +163,31 @@ export default function HomePage() {
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wider">
               Simulasi Langsung Gemini RAG Engine
             </span>
-            <h2 className="text-3xl font-extrabold text-slate-900">Uji Coba Rekomendasi AI Matching Engine</h2>
+            <h2 className="text-3xl font-extrabold text-slate-900">Uji Coba AI Matching Limbah Pertanian</h2>
             <p className="text-xs md:text-sm text-slate-600 font-medium">
-              Pilih jenis limbah dan jumlah berat untuk menyaksikan AI merekomendasikan pemanfaatan bernilai ekonomi tertinggi.
+              Pilih jenis limbah pertanian dari Gapoktan dan estimasi volume (kg) untuk melihat rekomendasi buyer bernilai ekonomi tertinggi.
             </p>
           </div>
 
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-emerald-200 shadow-lg shadow-emerald-500/5 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Pilih Jenis Limbah Organik</label>
+                <label className="text-xs font-bold text-slate-700">Jenis Limbah Pertanian</label>
                 <select
                   value={demoWasteType}
                   onChange={(e) => setDemoWasteType(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:border-emerald-500 focus:outline-none"
                 >
-                  <option value="ampas_kopi">Ampas Kopi (Coffee Grounds)</option>
                   <option value="sekam_padi">Sekam Padi (Rice Husk)</option>
-                  <option value="kulit_buah_sayur">Kulit Buah & Sayur</option>
-                  <option value="serbuk_kayu">Serbuk Kayu / Gergaji</option>
-                  <option value="sisa_makanan">Sisa Makanan Non-B3</option>
+                  <option value="jerami_padi">Jerami Padi (Rice Straw)</option>
+                  <option value="limbah_jagung">Limbah Jagung (Tongkol & Batang)</option>
+                  <option value="sabut_kelapa">Sabut Kelapa (Coconut Coir)</option>
+                  <option value="jerami_kedelai">Jerami Kedelai (Soybean Straw)</option>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Jumlah Berat (kg)</label>
+                <label className="text-xs font-bold text-slate-700">Estimasi Volume (kg)</label>
                 <input
                   type="number"
                   value={demoKg}
@@ -214,7 +211,7 @@ export default function HomePage() {
             {demoResults && (
               <div className="space-y-4 pt-4 border-t border-slate-200">
                 <h3 className="text-sm font-bold text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Hasil Ranking Rekomendasi Buyer Terbaik:
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Hasil Ranking Rekomendasi Buyer Sektor Pertanian:
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -242,40 +239,40 @@ export default function HomePage() {
       {/* Feature Pillar Section */}
       <section id="features" className="relative z-10 py-24 px-4 max-w-7xl mx-auto space-y-16">
         <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">4 Pilar Keunggulan Solusi WasteMatch</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">4 Pilar Keunggulan Solusi TemuTani</h2>
           <p className="text-slate-600 text-sm md:text-base font-medium">
-            Dirancang khusus untuk memecahkan hambatan transaksi B2B limbah organik skala UMKM secara efektif.
+            Dirancang khusus untuk memecahkan hambatan transaksi B2B limbah pertanian kelompok tani secara efisien.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
-              <Sparkles className="w-6 h-6" />
+              <Users className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">2-Lapis AI Matching Engine</h3>
+            <h3 className="text-lg font-bold text-slate-900">Agregasi Skala Gapoktan</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Mengkombinasikan basis pengetahuan literatur pertanian (Lapis 1) dengan optimasi demand real-time buyer (Lapis 2) via Gemini RAG API.
+              Memfokuskan generator pada kelompok tani / gapoktan untuk mengagregasi volume limbah panen dalam kuantitas B2B yang bernilai tinggi.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-600">
-              <ShieldCheck className="w-6 h-6" />
+              <Sparkles className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Batasan Kategori Non-B3</h3>
+            <h3 className="text-lg font-bold text-slate-900">2-Lapis AI Matching Engine</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Pilihan limbah tertutup untuk mencegah paparan limbah B3 (seperti minyak jelantah & kimia), menjamin keamanan perizinan awal.
+              Mengkombinasikan pengetahuan literatur pertanian (Lapis 1) dengan optimasi demand buyer aktif (Lapis 2) via Gemini RAG.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
-              <Recycle className="w-6 h-6" />
+              <Sprout className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">Model Self-Pickup Asset-Light</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Buyer bertanggung jawab mengangkut limbah langsung dari lokasi generator, membebaskan platform dari beban armada logistik.
+              Pembeli (pabrik/peternak) bertanggung jawab menjemput limbah langsung di lokasi Gapoktan dengan spesifikasi armada yang sesuai.
             </p>
           </div>
 
@@ -285,7 +282,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-lg font-bold text-slate-900">Offline-Resilient PWA</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Draft input listing & demand tersimpan otomatis ke IndexedDB lokal saat koneksi buruk dan disinkronkan saat online kembali.
+              Pengurus Gapoktan tetap dapat menginput listing limbah saat sinyal di desa lemah, tersimpan lokal di IndexedDB dan disinkronkan saat online.
             </p>
           </div>
         </div>
@@ -296,20 +293,20 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="bg-emerald-950/60 p-8 rounded-3xl border border-emerald-800 space-y-2">
             <Globe2 className="w-8 h-8 text-emerald-400 mx-auto" />
-            <span className="text-3xl md:text-4xl font-extrabold text-white">50.000+ kg</span>
-            <p className="text-xs text-emerald-200">Limbah Organik Dialihkan dari TPA</p>
+            <span className="text-3xl md:text-4xl font-extrabold text-white">120.000+ kg</span>
+            <p className="text-xs text-emerald-200">Limbah Pertanian Teralihkan dari Pembakaran Open-Burning</p>
           </div>
 
           <div className="bg-emerald-950/60 p-8 rounded-3xl border border-emerald-800 space-y-2">
             <BarChart3 className="w-8 h-8 text-teal-400 mx-auto" />
-            <span className="text-3xl md:text-4xl font-extrabold text-white">Rp 125.000.000+</span>
-            <p className="text-xs text-emerald-200">Estimasi Nilai Ekonomi Baru Tercipta</p>
+            <span className="text-3xl md:text-4xl font-extrabold text-white">Rp 240.000.000+</span>
+            <p className="text-xs text-emerald-200">Estimasi Pendapatan Tambahan Tercipta untuk Anggota Gapoktan</p>
           </div>
 
           <div className="bg-emerald-950/60 p-8 rounded-3xl border border-emerald-800 space-y-2">
             <Leaf className="w-8 h-8 text-emerald-400 mx-auto" />
-            <span className="text-3xl md:text-4xl font-extrabold text-white">12.500 kg</span>
-            <p className="text-xs text-emerald-200">Estimasi Pengurangan Potensi Emisi CH4 (Metana)</p>
+            <span className="text-3xl md:text-4xl font-extrabold text-white">35.000 kg</span>
+            <p className="text-xs text-emerald-200">Estimasi Pengurangan Potensi Emisi Karbon & Asap</p>
           </div>
         </div>
       </section>

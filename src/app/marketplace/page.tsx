@@ -4,98 +4,99 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import OfflineBanner from '@/components/OfflineBanner';
-import { Store, Filter, MapPin, Calendar, Scale, Sparkles, Building2, CheckCircle2, ArrowRight, DollarSign, Send, FileText, X, Check, Clock } from 'lucide-react';
-import { WasteListing, CATEGORY_LABELS, WasteCategory, WasteTransaction, UserProfile } from '@/lib/types';
+import { Store, Filter, MapPin, Calendar, Scale, Sparkles, Building2, CheckCircle2, ArrowRight, DollarSign, Send, FileText, X, Check, Clock, MessageSquare } from 'lucide-react';
+import ChatNegotiationModal from '@/components/ChatNegotiationModal';
+import { WasteListing, CATEGORY_LABELS, WasteCategory, WasteTransaction, UserProfile, ChatMessage } from '@/lib/types';
 import Link from 'next/link';
 
 const MOCK_LISTINGS: WasteListing[] = [
   {
     id: 'lst-101',
     generator_id: 'gen-demo-1',
-    jenis_limbah: 'ampas_kopi',
-    jumlah_kg: 500,
-    lokasi_pickup: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-    jadwal_tersedia: 'Setiap Hari Kerja (09.00 - 17.00 WIB)',
+    jenis_limbah: 'sekam_padi',
+    jumlah_kg: 2000,
+    lokasi_pickup: 'Penggilingan Padi Gapoktan Sukamaju, Karawang',
+    jadwal_tersedia: 'Setiap Musim Panen (08.00 - 17.00 WIB)',
     status: 'aktif',
     created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
     generator: {
       id: 'gen-demo-1',
-      nama: 'Kopi Kencana Espresso & Roastery',
-      email: 'generator@demo.com',
+      nama: 'Gapoktan Sukamaju Karawang',
+      email: 'gapoktan@sukamaju.id',
       role: 'generator',
-      jenis_usaha: 'Coffee Shop & Cafe',
+      jenis_usaha: 'Gabungan Kelompok Tani Padi',
       no_hp: '081299887766'
     }
   },
   {
     id: 'lst-102',
     generator_id: 'gen-demo-2',
-    jenis_limbah: 'sekam_padi',
-    jumlah_kg: 1200,
-    lokasi_pickup: 'Penggilingan Padi Makmur, Karawang, Jawa Barat',
-    jadwal_tersedia: 'Senin - Jumat (08.00 - 16.00 WIB)',
+    jenis_limbah: 'jerami_padi',
+    jumlah_kg: 3500,
+    lokasi_pickup: 'Lahan Sawah Anggota Gapoktan Tani Makmur, Kudus',
+    jadwal_tersedia: 'Pasca Panen Raya (07.00 - 16.00 WIB)',
     status: 'aktif',
     created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
     generator: {
       id: 'gen-demo-2',
-      nama: 'Penggilingan Padi Makmur Karawang',
-      email: 'padi@makmur.id',
+      nama: 'Gapoktan Tani Makmur Kudus',
+      email: 'tanimakmur@kudus.id',
       role: 'generator',
-      jenis_usaha: 'Penggilingan Padi',
+      jenis_usaha: 'Gabungan Kelompok Tani Padi',
       no_hp: '081388776655'
     }
   },
   {
     id: 'lst-103',
     generator_id: 'gen-demo-3',
-    jenis_limbah: 'kulit_buah_sayur',
-    jumlah_kg: 350,
-    lokasi_pickup: 'Katering Sehat Berkah, Pasar Minggu, Jakarta Selatan',
-    jadwal_tersedia: 'Setiap Sore Jam 16.00 - 19.00 WIB',
+    jenis_limbah: 'limbah_jagung',
+    jumlah_kg: 1800,
+    lokasi_pickup: 'Sentra Jagung Kelompok Tani Sejahtera, Grobogan',
+    jadwal_tersedia: 'Setiap Hari Kerja (08.00 - 17.00 WIB)',
     status: 'aktif',
     created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
     generator: {
       id: 'gen-demo-3',
-      nama: 'Katering Sehat Berkah',
-      email: 'katering@berkah.com',
+      nama: 'Kelompok Tani Jagung Sejahtera',
+      email: 'jagung@grobogan.id',
       role: 'generator',
-      jenis_usaha: 'Industri Katering & Resto',
+      jenis_usaha: 'Kelompok Tani Jagung',
       no_hp: '081577665544'
     }
   },
   {
     id: 'lst-104',
     generator_id: 'gen-demo-4',
-    jenis_limbah: 'serbuk_kayu',
-    jumlah_kg: 800,
-    lokasi_pickup: 'Workshop Mebel Meubelia, Jepara / Bekasi',
-    jadwal_tersedia: 'Sabtu & Minggu Pickup',
+    jenis_limbah: 'sabut_kelapa',
+    jumlah_kg: 2500,
+    lokasi_pickup: 'Gudang Agregasi Kelompok Tani Nyiur, Kebumen',
+    jadwal_tersedia: 'Senin - Sabtu (08.00 - 16.00 WIB)',
     status: 'aktif',
     created_at: new Date(Date.now() - 3600000 * 36).toISOString(),
     generator: {
       id: 'gen-demo-4',
-      nama: 'Workshop Meubelia Kayu',
-      email: 'mebel@kayu.id',
+      nama: 'Kelompok Tani Kelapa Nyiur',
+      email: 'kelapa@kebumen.id',
       role: 'generator',
-      jenis_usaha: 'Pengolahan Kayu & Furniture',
+      jenis_usaha: 'Kelompok Tani Kelapa',
       no_hp: '081666554433'
     }
   },
   {
     id: 'lst-105',
     generator_id: 'gen-demo-5',
-    jenis_limbah: 'sisa_makanan',
-    jumlah_kg: 600,
-    lokasi_pickup: 'Restoran Sunda Nikmat, Bogor Barat',
-    jadwal_tersedia: 'Setiap Malam Jam 21.00 WIB',
+    jenis_limbah: 'jerami_kedelai',
+    jumlah_kg: 1200,
+    lokasi_pickup: 'Lahan Sawah Kelompok Tani Kedelai Subur, Boyolali',
+    jadwal_tersedia: 'Setiap Jam Kerja (08.00 - 16.00 WIB)',
     status: 'aktif',
     created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
     generator: {
       id: 'gen-demo-5',
-      nama: 'Restoran Sunda Nikmat',
-      email: 'sunda@nikmat.id',
+      nama: 'Kelompok Tani Kedelai Subur',
+      email: 'kedelai@boyolali.id',
       role: 'generator',
-      jenis_usaha: 'Restoran Makanan',
+      jenis_usaha: 'Kelompok Tani Kedelai',
       no_hp: '081755443322'
     }
   }
@@ -115,6 +116,10 @@ export default function MarketplacePage() {
   const [offerPickupSchedule, setOfferPickupSchedule] = useState<string>('Besok Jam 10.00 WIB');
   const [offerSuccessMsg, setOfferSuccessMsg] = useState<string | null>(null);
 
+  // Chat modal state
+  const [selectedTxForChat, setSelectedTxForChat] = useState<WasteTransaction | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   useEffect(() => {
     const storedUser = localStorage.getItem('wastematch_user');
     if (storedUser) {
@@ -130,11 +135,12 @@ export default function MarketplacePage() {
     setSelectedListingForOffer(listing);
     setOfferKg(listing.jumlah_kg);
     setOfferPricePerKg(
-      listing.jenis_limbah === 'ampas_kopi' ? 2000 :
-      listing.jenis_limbah === 'sekam_padi' ? 1800 :
-      listing.jenis_limbah === 'kulit_buah_sayur' ? 1500 : 1200
+      listing.jenis_limbah === 'sekam_padi' ? 2000 :
+      listing.jenis_limbah === 'jerami_padi' ? 1600 :
+      listing.jenis_limbah === 'limbah_jagung' ? 1400 :
+      listing.jenis_limbah === 'sabut_kelapa' ? 2200 : 1800
     );
-    setOfferNotes(`Halo ${listing.generator?.nama}, kami dari buyer tertarik mengambil pasokan material ini untuk pengolahan agribisnis.`);
+    setOfferNotes(`Halo ${listing.generator?.nama}, kami dari pabrik/industri tertarik membeli pasokan material ini untuk pengolahan agribisnis kami.`);
     setOfferPickupSchedule(listing.jadwal_tersedia || 'Setiap Hari Kerja');
     setOfferSuccessMsg(null);
   };
@@ -167,6 +173,31 @@ export default function MarketplacePage() {
       no_hp: '081122334455'
     };
 
+    const initialMessages: ChatMessage[] = [
+      {
+        id: `msg-sys-1`,
+        sender_id: 'system',
+        sender_name: 'Sistem WasteMatch',
+        sender_role: 'system',
+        text: `Thread negosiasi diajukan oleh pembeli ${buyerUser.nama}.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      },
+      {
+        id: `msg-offer-${Date.now()}`,
+        sender_id: buyerUser.id,
+        sender_name: buyerUser.nama,
+        sender_role: 'buyer',
+        text: offerNotes,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        offer_proposal: {
+          harga_per_kg: Number(offerPricePerKg),
+          jumlah_kg: Number(offerKg),
+          jadwal_pickup: offerPickupSchedule,
+          status: 'pending'
+        }
+      }
+    ];
+
     const newTx: WasteTransaction = {
       id: `tx-${Date.now()}`,
       listing_id: selectedListingForOffer.id,
@@ -179,6 +210,7 @@ export default function MarketplacePage() {
       jadwal_pickup: offerPickupSchedule,
       konfirmasi_generator: false,
       konfirmasi_buyer: true,
+      messages: initialMessages,
       created_at: new Date().toISOString(),
       listing: selectedListingForOffer,
       buyer: buyerUser,
@@ -187,10 +219,23 @@ export default function MarketplacePage() {
 
     // Store transaction locally in localStorage
     const existingTxs = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
-    localStorage.setItem('wastematch_transactions', JSON.stringify([newTx, ...existingTxs]));
+    const updatedTxs = [newTx, ...existingTxs];
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updatedTxs));
 
     const totalVal = (Number(offerKg) * Number(offerPricePerKg)).toLocaleString('id-ID');
-    setOfferSuccessMsg(`Penawaran Resmi Sebesar Rp ${totalVal} (${offerKg}kg @ Rp ${offerPricePerKg}/kg) Berhasil Dikirimkan ke ${selectedListingForOffer.generator?.nama}!`);
+    setOfferSuccessMsg(`Penawaran Resmi Sebesar Rp ${totalVal} (${offerKg}kg @ Rp ${offerPricePerKg}/kg) Berhasil Dikirimkan ke Penjual (${selectedListingForOffer.generator?.nama})!`);
+
+    // Open Chat Modal immediately
+    setSelectedTxForChat(newTx);
+    setIsChatOpen(true);
+    setSelectedListingForOffer(null);
+  };
+
+  const handleUpdateTxFromChat = (updatedTx: WasteTransaction) => {
+    const existingTxs: WasteTransaction[] = JSON.parse(localStorage.getItem('wastematch_transactions') || '[]');
+    const updated = existingTxs.map(tx => tx.id === updatedTx.id ? updatedTx : tx);
+    setSelectedTxForChat(updatedTx);
+    localStorage.setItem('wastematch_transactions', JSON.stringify(updated));
   };
 
   const filteredListings = listings.filter(item => {
@@ -212,10 +257,10 @@ export default function MarketplacePage() {
             <Store className="w-4 h-4 text-emerald-600" /> B2B Organic Waste Marketplace
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-            Pasokan Limbah Organik <span className="text-gradient">Terverifikasi Non-B3</span>
+            Pasokan Limbah Organik & Sisa Panen <span className="text-gradient">Terverifikasi Non-B3</span>
           </h1>
           <p className="text-sm md:text-base text-slate-600 font-medium leading-relaxed">
-            Jelajahi listing pasokan bahan baku limbah organik dari UMKM generator terverifikasi. Ajukan penawaran harga & tentukan jadwal Self-Pickup.
+            Jelajahi listing pasokan bahan baku limbah organik dari Petani & Penggilingan Padi terverifikasi. Pembeli (Pabrik/Industri) dapat mengajukan penawaran harga & menentukan jadwal Self-Pickup.
           </p>
         </div>
 
@@ -271,7 +316,7 @@ export default function MarketplacePage() {
                     {item.generator?.nama}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" /> {item.generator?.jenis_usaha}
+                    <Building2 className="w-3.5 h-3.5 text-slate-400" /> Penjual: {item.generator?.jenis_usaha}
                   </p>
                 </div>
 
@@ -323,7 +368,7 @@ export default function MarketplacePage() {
                     <Send className="w-5 h-5 text-emerald-600" /> Form Ajukan Penawaran Resmi B2B
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Kirimkan penawaran harga & spesifikasi jumlah pasokan ke pihak Generator
+                    Kirimkan penawaran harga & spesifikasi jumlah pasokan ke pihak Penjual (Petani/Penggilingan Padi)
                   </p>
                 </div>
                 <button
@@ -337,12 +382,12 @@ export default function MarketplacePage() {
               {/* Status banner jika pengguna belum login sebagai buyer */}
               {!currentUser && (
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
-                  <span>Anda belum login sebagai Buyer. Gunakan preset Demo Buyer untuk langsung mencoba!</span>
+                  <span>Anda belum login sebagai Pembeli (Pabrik). Gunakan preset Demo Pembeli untuk langsung mencoba!</span>
                   <button
                     onClick={handleQuickLoginAsBuyer}
                     className="px-3 py-1 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-500 transition-colors"
                   >
-                    Masuk Akun Buyer
+                    Masuk Akun Pembeli
                   </button>
                 </div>
               )}
@@ -353,7 +398,7 @@ export default function MarketplacePage() {
                     <Check className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-base font-extrabold text-emerald-900">Penawaran Berhasil Terkirim!</h4>
+                    <h4 className="text-base font-extrabold text-emerald-900">Penawaran Pembelian Berhasil Terkirim!</h4>
                     <p className="text-xs text-slate-700 leading-relaxed font-medium">
                       {offerSuccessMsg}
                     </p>
@@ -363,7 +408,7 @@ export default function MarketplacePage() {
                       href="/buyer/dashboard"
                       className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md"
                     >
-                      Pantau di Buyer Dashboard
+                      Pantau di Dashboard Pembeli
                     </Link>
                     <button
                       onClick={() => setSelectedListingForOffer(null)}
@@ -378,7 +423,7 @@ export default function MarketplacePage() {
                   {/* Summary Box */}
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                     <div className="flex items-center justify-between font-bold text-slate-900">
-                      <span>{selectedListingForOffer.generator?.nama}</span>
+                      <span>Penjual: {selectedListingForOffer.generator?.nama}</span>
                       <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px]">
                         {(CATEGORY_LABELS[selectedListingForOffer.jenis_limbah] || selectedListingForOffer.jenis_limbah).split('(')[0]}
                       </span>
@@ -393,7 +438,7 @@ export default function MarketplacePage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Jumlah Diminta (kg)</label>
+                      <label className="text-xs font-bold text-slate-700">Jumlah Diminta Pembeli (kg)</label>
                       <input
                         type="number"
                         min="1"
@@ -406,7 +451,7 @@ export default function MarketplacePage() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Tawaran Harga per kg (Rp)</label>
+                      <label className="text-xs font-bold text-slate-700">Tawaran Harga Beli per kg (Rp)</label>
                       <input
                         type="number"
                         min="100"
@@ -421,7 +466,7 @@ export default function MarketplacePage() {
 
                   {/* Calculated Value Box */}
                   <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between">
-                    <span className="text-slate-700 font-bold">Total Nilai Penawaran Transaksi:</span>
+                    <span className="text-slate-700 font-bold">Total Nilai Penawaran Pembelian:</span>
                     <span className="text-lg font-extrabold text-emerald-800">
                       Rp {(offerKg * offerPricePerKg).toLocaleString('id-ID')}
                     </span>
@@ -440,7 +485,7 @@ export default function MarketplacePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Catatan / Pesan untuk Generator</label>
+                    <label className="text-xs font-bold text-slate-700">Catatan / Pesan untuk Penjual (Petani)</label>
                     <textarea
                       rows={3}
                       value={offerNotes}
@@ -469,6 +514,23 @@ export default function MarketplacePage() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Chat & Negotiation Modal */}
+        {selectedTxForChat && (
+          <ChatNegotiationModal
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            transaction={selectedTxForChat}
+            currentUser={currentUser || {
+              id: 'buy-demo-1',
+              nama: 'PT Suburtani Makmur Biofertilizer',
+              email: 'buyer@demo.com',
+              role: 'buyer',
+              jenis_usaha: 'Produsen Biofertilizer & Pupuk Hayati'
+            }}
+            onUpdateTransaction={handleUpdateTxFromChat}
+          />
         )}
       </main>
 
