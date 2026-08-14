@@ -53,8 +53,8 @@ export default function RegisterPage() {
       <main className="flex-1 flex items-center justify-center px-4 pt-32 pb-20">
         <div className="w-full max-w-lg bg-white p-8 rounded-3xl border border-emerald-200 shadow-xl space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-3">
-              <Sprout className="w-6 h-6 animate-pulse" />
+            <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center p-2 mx-auto mb-3 shadow-md">
+              <img src="/logo.png" alt="TemuTani Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Daftar Akun TemuTani</h1>
             <p className="text-xs text-slate-600 font-medium">Pilih Peran Akun Anda dalam Ekosistem Limbah Pertanian</p>

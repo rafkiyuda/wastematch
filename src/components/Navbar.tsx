@@ -35,8 +35,8 @@ export default function Navbar() {
     <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 z-50 px-6 h-16 flex items-center justify-between shadow-lg shadow-slate-200/50 transition-all duration-300">
       {/* Brand Logo */}
       <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
-          <Sprout className="w-5 h-5" />
+        <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center p-1.5 group-hover:scale-105 transition-transform overflow-hidden">
+          <img src="/logo.png" alt="TemuTani Logo" className="w-full h-full object-contain" />
         </div>
         <div className="flex flex-col">
           <span className="font-extrabold text-xl tracking-tight text-slate-900 flex items-center gap-1.5">

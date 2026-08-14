@@ -8,8 +8,8 @@ export default function Footer() {
         {/* Col 1 */}
         <div className="space-y-4 md:col-span-1">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <Sprout className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full bg-white border border-emerald-500/30 flex items-center justify-center p-1 overflow-hidden">
+              <img src="/logo.png" alt="TemuTani Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-extrabold text-lg text-white">Temu<span className="text-emerald-400">Tani</span></span>
           </div>
